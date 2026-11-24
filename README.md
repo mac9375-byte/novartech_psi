@@ -149,6 +149,7 @@ Prompt 1135.md   요구사항 정의서 (업무 규칙 원본)
 ```
 
 ## 문서
+- **운영 매뉴얼**: [`docs/운영매뉴얼.html`](docs/운영매뉴얼.html) — 주간 PSI 운영 프로세스, 10개 Tab 사용법, Error 조치 (내려받아 브라우저로 열기)
 - 요구사항 정의서: [`Prompt 1135.md`](Prompt%201135.md)
 - 설계 문서: [`설계/`](설계) — 01 공통기능·Material Master 확인항목, 02 공통기반 설계, 03 Material Master, 04 Assy Master, 05 Module 3~10 구현기록
 
