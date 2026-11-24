@@ -1,0 +1,61 @@
+{% extends "core/module_base.html" %}
+{% block title %}Upload result{% endblock %}
+{% block module_content %}
+<h1>{{ title }} · Upload validation result</h1>
+<p>File: <b>{{ batch.source_filename }}</b> · Upload Type: <b>{{ upload_type_label }}</b> ·
+   Uploaded by {{ batch.uploaded_by.username }} at {{ batch.created_at|date:"Y-m-d H:i" }} · State: <b>{{ batch.get_state_display }}</b></p>
+
+<table class="grid summary">
+  <tr><th>Total rows</th><td>{{ batch.summary.total }}</td>
+      <th>Valid</th><td>{{ batch.summary.valid|default:0 }}</td>
+      <th>Error</th><td class="{% if batch.error_count %}neg{% endif %}">{{ batch.error_count }}</td>
+      <th>Warning</th><td>{{ batch.warning_count }}</td></tr>
+</table>
+
+{% if batch.error_count %}
+  <div class="error box">There are errors. Nothing will be saved. Fix the Excel file and upload again.
+    (Error가 있어 반영할 수 없습니다. Excel을 수정한 뒤 다시 Upload하세요.)</div>
+{% else %}
+  <table class="grid summary">
+    <tr>{% for label, value in counts %}<th>{{ label }}</th>{% endfor %}</tr>
+    <tr>{% for label, value in counts %}<td>{{ value }}</td>{% endfor %}</tr>
+  </table>
+{% endif %}
+
+<div class="toolbar">
+  <a class="btn" href="{{ issues_url }}">Download validation result</a>
+  <a class="btn" href="{{ back_url }}">Back</a>
+  {% if batch.state == "PREVIEW" %}
+  <form method="post" action="{{ cancel_url }}" class="inline">{% csrf_token %}<button class="btn" type="submit">Cancel</button></form>
+  <form method="post" action="{{ apply_url }}" class="inline">{% csrf_token %}<button class="btn primary" type="submit">Apply (반영)</button></form>
+  {% endif %}
+</div>
+
+{% if batch.issues %}
+<h2>Messages</h2>
+<div class="table-wrap short">
+<table class="grid">
+  <thead><tr><th>Level</th><th>Sheet</th><th>Excel Row</th><th>Code</th><th>Field</th><th>Reason</th></tr></thead>
+  <tbody>
+  {% for i in batch.issues %}
+    <tr class="lvl-{{ i.level|lower }}"><td>{{ i.level }}</td><td>{{ i.sheet }}</td><td>{{ i.row }}</td><td>{{ i.code }}</td><td>{{ i.field }}</td><td>{{ i.reason }}</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+{% endif %}
+
+{% if batch.summary.details %}
+<h2>Rows to be processed</h2>
+<div class="table-wrap short">
+<table class="grid">
+  <thead><tr><th>Excel Row</th><th>Code</th><th>Action</th><th>Changed fields</th></tr></thead>
+  <tbody>
+  {% for d in batch.summary.details %}
+    <tr><td>{{ d.row }}</td><td>{{ d.code }}</td><td>{{ d.kind|title }}</td><td>{{ d.changes|join:" / " }}</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+{% endif %}
+{% endblock %}

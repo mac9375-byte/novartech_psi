@@ -12,6 +12,8 @@ from django.shortcuts import redirect, render
 from django.utils import timezone
 from django.views.decorators.http import require_POST
 
+from core.navigation import main_groups
+
 from .forms import LoginForm, MyInfoForm, SignupForm
 from .models import IdStatus, User, UserClass
 from .permissions import has_perm, require
@@ -27,13 +29,6 @@ MSG_STATUS = {
     IdStatus.DISABLED: "This ID is disabled. Contact the Master.",
 }
 
-# Main 화면 메뉴 (PPT Main 01). url이 None이면 아직 개발 전 → 비활성 표시
-MODULE_GROUPS = [
-    ("Master DB", [("1. Material Master", None), ("2. Assy Master", None), ("3. BOM", None), ("4. Safety Stock", None)]),
-    ("Weekly Data", [("5. Inventory", None), ("6. RTF/Production", None)]),
-    ("PO", [("7. Open PO", None), ("8. Scheduled Receipt", None)]),
-    ("Report", [("9. Material Requirement", None), ("10. Material PSI", None)]),
-]
 
 
 @login_not_required
@@ -107,7 +102,7 @@ def check_id_view(request):
 def main_view(request):
     """Main Navigation (Ⅴ-4)."""
     return render(request, "accounts/main.html", {
-        "groups": MODULE_GROUPS,
+        "groups": main_groups(),
         "can_manage_users": has_perm(request.user, "user_manage"),
     })
 

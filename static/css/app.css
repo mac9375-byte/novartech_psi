@@ -45,3 +45,38 @@ h2 { font-size: 15px; margin: 0 0 10px; color: var(--blue); }
 .grid tr:has(input[name=sel]:checked) td { background: #fff7d6; }
 .grid tr.readonly td { color: #666; background: #fafafa; }
 .status-requested, .status-disabled { color: var(--red); }
+
+/* ---- 업무 Module 화면 공통 (Ⅳ-3) ---- */
+.page.wide { max-width: none; }
+.tabs { display: flex; flex-wrap: wrap; gap: 2px; border-bottom: 2px solid var(--blue); margin-bottom: 8px; }
+.tab { padding: 6px 12px; background: #e9eef3; border: 1px solid var(--line); border-bottom: 0; text-decoration: none; color: var(--text); font-size: 13px; }
+.tab.active { background: var(--blue); color: #fff; }
+.tab.disabled { color: #aaa; cursor: not-allowed; }
+.calc-status { text-align: right; font-size: 12px; color: #555; margin-bottom: 8px; }
+.need-recalc { color: var(--red); font-weight: 700; margin-left: 8px; }
+.searchbar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 8px; }
+.searchbar label { display: flex; gap: 4px; align-items: center; font-size: 13px; }
+.searchbar select, .searchbar input[type=text] { padding: 5px 6px; border: 1px solid var(--line); border-radius: 4px; }
+.searchbar .spacer { flex: 1; }
+.btn:disabled { opacity: .45; cursor: not-allowed; }
+.table-wrap.tall { max-height: calc(100vh - 260px); }
+.table-wrap.short { max-height: 360px; }
+.grid th.up { background: #64a9d6; color: #fff; }
+.grid th.sys { background: #d9d9d9; }
+.grid td.ed input, .grid td.ed select { border: 1px solid transparent; background: transparent; padding: 2px 4px; font: inherit; width: 100%; min-width: 60px; }
+.grid tr:has(input[name=sel]:checked) td.ed { background: #fff2b3; }
+.grid tr:has(input[name=sel]:checked) td.ed input, .grid tr:has(input[name=sel]:checked) td.ed select { border-color: #c9a800; background: #fff; }
+.grid tr.inactive td.st, .grid tr.inactive .status-sel { color: #0000ff; }
+.warn-status { color: var(--red); font-size: 12px; margin-left: 4px; }
+.legend { padding: 0 6px; border-radius: 3px; }
+.legend.up { background: #64a9d6; color: #fff; }
+.legend.sys { background: #d9d9d9; }
+.grid.summary { width: auto; margin-bottom: 12px; }
+.neg { color: var(--red); font-weight: 700; }
+.lvl-error td { color: var(--red); }
+.lvl-warning td { color: #b26a00; }
+dialog { border: 1px solid var(--line); border-radius: 6px; padding: 20px; min-width: 360px; }
+dialog::backdrop { background: rgba(0,0,0,.3); }
+.radio { display: block; margin: 6px 0; }
+.row.end { justify-content: flex-end; margin-top: 12px; }
+.cellflex { display: flex; align-items: center; gap: 4px; }

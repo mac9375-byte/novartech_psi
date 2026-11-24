@@ -29,7 +29,12 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "accounts",
+    "core",
+    "materials",
 ]
+
+# Material Master 등 표 화면의 한 번 저장 시 입력칸 수 상한 (기본 1,000은 1,000행 표에 부족)
+DATA_UPLOAD_MAX_NUMBER_FIELDS = 20000
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",

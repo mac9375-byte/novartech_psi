@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block main_class %}page wide{% endblock %}
+{% block content %}
+<nav class="tabs">
+  {% for t in tabs %}
+    {% if t.url %}<a class="tab{% if t.active %} active{% endif %}" href="{{ t.url }}">{{ t.label }}</a>
+    {% else %}<span class="tab disabled" title="Not developed yet">{{ t.label }}</span>{% endif %}
+  {% endfor %}
+</nav>
+<div class="calc-status">
+  Final Calculation: {% if sys_status.last_calculated_at %}{{ sys_status.last_calculated_at|date:"Y-m-d H:i" }} ({{ sys_status.last_calculated_at|date:"T" }}){% else %}-{% endif %}
+  {% if sys_status.need_recalculation %}<span class="need-recalc">● Need Recalculation</span>{% endif %}
+</div>
+{% block module_content %}{% endblock %}
+{% endblock %}
