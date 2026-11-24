@@ -22,6 +22,10 @@ SECRET_KEY = ENV["DJANGO_SECRET_KEY"]
 DEBUG = ENV.get("DJANGO_DEBUG") == "1"
 ALLOWED_HOSTS = ["localhost", "127.0.0.1"]
 
+# PoC 점검용 로그인 생략: 개발 모드에서 자동으로 poc_admin(Admin)으로 로그인.
+# 끄려면 .env에 POC_SKIP_LOGIN=0 추가. 운영 배포(DJANGO_DEBUG=0)에서는 자동으로 꺼짐.
+POC_SKIP_LOGIN = ENV.get("POC_SKIP_LOGIN", "1") == "1"
+
 INSTALLED_APPS = [
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -47,6 +51,7 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "accounts.middleware.PocAutoLoginMiddleware",
     # 로그인하지 않은 요청은 모두 Log-in 화면으로 (예외: @login_not_required 화면)
     "django.contrib.auth.middleware.LoginRequiredMiddleware",
     "accounts.middleware.ForcePasswordChangeMiddleware",
