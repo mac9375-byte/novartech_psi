@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}Main{% endblock %}
+{% block content %}
+<div class="main-head">
+  <h1>Material PSI 분석 도우미</h1>
+  {% if can_manage_users %}<a class="btn primary" href="{% url 'users' %}">※ User Management</a>{% endif %}
+</div>
+<div class="groups">
+  {% for group, modules in groups %}
+  <section class="group">
+    <h2>{{ group }}</h2>
+    {% for label, url in modules %}
+      {% if url %}<a class="module" href="{{ url }}">{{ label }}</a>
+      {% else %}<span class="module disabled" title="Not developed yet">{{ label }}</span>{% endif %}
+    {% endfor %}
+  </section>
+  {% endfor %}
+</div>
+{% endblock %}

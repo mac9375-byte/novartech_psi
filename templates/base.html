@@ -1,0 +1,47 @@
+{% load static %}<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Material PSI{% endblock %} · Material PSI</title>
+  <link rel="stylesheet" href="{% static 'css/app.css' %}">
+  <script>
+    // 화면 시간 표시용: 브라우저 Timezone을 서버에 알려준다 (Ⅳ-6-4)
+    document.cookie = "tz=" + encodeURIComponent(Intl.DateTimeFormat().resolvedOptions().timeZone) + ";path=/;SameSite=Lax";
+  </script>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="/">Material PSI 분석 도우미</a>
+    {% if user.is_authenticated %}
+    <div class="topbar-right">
+      <span>User: <b>{{ user.username }}</b></span>
+      <a class="btn" href="{% url 'me' %}">ID info</a>
+      <form method="post" action="{% url 'logout' %}" class="inline" data-logout>
+        {% csrf_token %}<button class="btn" type="submit">Log out</button>
+      </form>
+    </div>
+    {% endif %}
+  </header>
+  <main class="{% block main_class %}page{% endblock %}">
+    {% if messages %}
+    <ul class="messages">
+      {% for m in messages %}<li class="msg {{ m.tags }}">{{ m }}</li>{% endfor %}
+    </ul>
+    {% endif %}
+    {% block content %}{% endblock %}
+  </main>
+  <script>
+    // 저장하지 않은 수정내용이 있으면 화면 이동·Log-out 전에 경고 (Ⅴ-1-7)
+    window.dirty = false;
+    window.addEventListener("beforeunload", function (e) { if (window.dirty) { e.preventDefault(); e.returnValue = ""; } });
+    document.querySelectorAll("form[data-logout]").forEach(function (f) {
+      f.addEventListener("submit", function (e) {
+        if (window.dirty && !confirm("Unsaved changes will be lost. Log out anyway?")) { e.preventDefault(); }
+        else { window.dirty = false; }
+      });
+    });
+  </script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

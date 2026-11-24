@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}Sign up{% endblock %}
+{% block main_class %}page center{% endblock %}
+{% block content %}
+<div class="card narrow">
+  <h1>Sign up</h1>
+  <p class="hint">After Master approval you can log in.</p>
+  <form method="post" novalidate>
+    {% csrf_token %}
+    <div class="field">
+      <label for="{{ form.username.id_for_label }}">■ {{ form.username.label }}</label>
+      <div class="row">{{ form.username }}<button class="btn" type="button" id="id-check">ID check</button></div>
+      <div id="id-check-result" class="hint"></div>
+      {% for e in form.username.errors %}<div class="error">{{ e }}</div>{% endfor %}
+      <div class="hint">Letters, numbers and . _ - only. Saved in lower case.</div>
+    </div>
+    {% include "accounts/_field.html" with f=form.password %}
+    <div class="hint">8+ characters, at least one letter and one number, no spaces.</div>
+    {% include "accounts/_field.html" with f=form.password2 %}
+    {% include "accounts/_field.html" with f=form.name %}
+    {% include "accounts/_field.html" with f=form.email %}
+    {% include "accounts/_field.html" with f=form.tel %}
+    <button class="btn primary wide" type="submit">Save</button>
+  </form>
+  <a href="{% url 'login' %}">Back to Log in</a>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+  document.getElementById("id-check").addEventListener("click", function () {
+    var id = document.getElementById("{{ form.username.id_for_label }}").value;
+    fetch("{% url 'check_id' %}?id=" + encodeURIComponent(id))
+      .then(function (r) { return r.json(); })
+      .then(function (d) {
+        var el = document.getElementById("id-check-result");
+        el.textContent = d.message;
+        el.className = d.ok ? "ok" : "error";
+      });
+  });
+</script>
+{% endblock %}

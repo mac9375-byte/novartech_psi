@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}ID info{% endblock %}
+{% block main_class %}page center overlay{% endblock %}
+{% block content %}
+{# ponytail: Pop-up을 별도 화면의 대화상자 모양으로 구현. 업무 화면 위 모달이 필요해지면 JS 모달로 교체 #}
+<div class="card narrow dialog">
+  <h1>[{{ user.username }}] ID information management</h1>
+  {% if user.must_change_password %}
+  <div class="error box">You logged in with a temporary password. Set a new password to continue.
+    (임시 Password입니다. 새 Password를 저장해야 업무 화면을 사용할 수 있습니다.)</div>
+  {% endif %}
+  <form method="post" novalidate>
+    {% csrf_token %}
+    {% for e in form.non_field_errors %}<div class="error box">{{ e }}</div>{% endfor %}
+    {% include "accounts/_field.html" with f=form.old_password %}
+    {% include "accounts/_field.html" with f=form.new_password %}
+    {% include "accounts/_field.html" with f=form.new_password2 %}
+    <div class="hint">Leave password fields empty to keep your current password.</div>
+    {% include "accounts/_field.html" with f=form.name %}
+    {% include "accounts/_field.html" with f=form.email %}
+    {% include "accounts/_field.html" with f=form.tel %}
+    <div class="row">
+      <button class="btn primary" type="submit">Save</button>
+      {% if not user.must_change_password %}<a class="btn" href="{% url 'main' %}">Close</a>{% endif %}
+    </div>
+  </form>
+</div>
+{% endblock %}

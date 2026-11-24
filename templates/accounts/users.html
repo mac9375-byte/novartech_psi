@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}User Management{% endblock %}
+{% block content %}
+<div class="main-head">
+  <h1>User management</h1>
+  <a class="btn" href="{% url 'main' %}">Main</a>
+</div>
+<form method="post" id="users-form">
+  {% csrf_token %}
+  <div class="toolbar">
+    <span class="hint">1. Change Class / ID Status → select row → Save &nbsp; 2. Select row → P/W Reset</span>
+    <button class="btn" type="submit" name="action" value="reset"
+            onclick="return confirm('Issue temporary passwords for the selected users?')">P/W Reset</button>
+    <button class="btn primary" type="submit" name="action" value="save">Save</button>
+  </div>
+  <div class="table-wrap">
+  <table class="grid">
+    <thead><tr><th>Check</th><th>Purchaser ID</th><th>Name</th><th>Class</th><th>ID Status</th><th>e-Mail</th><th>Tel</th></tr></thead>
+    <tbody>
+    {% for u in users %}
+      {% if u.is_master %}
+      <tr class="readonly">
+        <td></td><td>{{ u.username }}</td><td>{{ u.name }}</td><td>{{ u.get_user_class_display }}</td>
+        <td>{{ u.get_id_status_display }}</td><td>{{ u.email }}</td><td>{{ u.tel }}</td>
+      </tr>
+      {% else %}
+      <tr>
+        <td><input type="checkbox" name="sel" value="{{ u.pk }}">
+            <input type="hidden" name="version_{{ u.pk }}" value="{{ u.version }}"></td>
+        <td>{{ u.username }}</td>
+        <td>{{ u.name }}</td>
+        <td><select name="class_{{ u.pk }}">
+          {% for v, l in class_choices %}<option value="{{ v }}"{% if v == u.user_class %} selected{% endif %}>{{ l }}</option>{% endfor %}
+        </select></td>
+        <td><select name="status_{{ u.pk }}" class="status-{{ u.id_status|lower }}">
+          {% for v, l in status_choices %}<option value="{{ v }}"{% if v == u.id_status %} selected{% endif %}>{{ l }}</option>{% endfor %}
+        </select></td>
+        <td>{{ u.email }}</td>
+        <td>{{ u.tel }}</td>
+      </tr>
+      {% endif %}
+    {% endfor %}
+    </tbody>
+  </table>
+  </div>
+</form>
+{% endblock %}
+{% block scripts %}
+<script>
+  // 값을 수정하면 해당 Row 자동 선택 + 저장 전 이동 경고
+  document.querySelectorAll("#users-form select").forEach(function (s) {
+    s.addEventListener("change", function () {
+      s.closest("tr").querySelector("input[name=sel]").checked = true;
+      window.dirty = true;
+    });
+  });
+  document.getElementById("users-form").addEventListener("submit", function () { window.dirty = false; });
+</script>
+{% endblock %}
