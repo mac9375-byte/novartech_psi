@@ -32,6 +32,10 @@ INSTALLED_APPS = [
     "core",
     "materials",
     "assies",
+    "bom",
+    "safety",
+    "weekly",
+    "psi",
 ]
 
 # Material Master 등 표 화면의 한 번 저장 시 입력칸 수 상한 (기본 1,000은 1,000행 표에 부족)

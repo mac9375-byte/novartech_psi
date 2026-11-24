@@ -1,0 +1,96 @@
+{% extends "core/module_base.html" %}
+{% block title %}{{ page_title }}{% endblock %}
+{% block module_content %}
+{% for b in banners %}<div class="banner {{ b.0 }}">{{ b.1 }}</div>{% endfor %}
+<form method="get" class="searchbar">
+  {% if controls.weeks %}
+  <label>Week
+    <select name="week">{% for v, l in controls.weeks %}<option value="{{ v }}"{% if v == controls.week %} selected{% endif %}>{{ l }}</option>{% endfor %}</select>
+  </label>
+  {% endif %}
+  {% if controls.plans %}
+  <label>Plan
+    <select name="plan">{% for v, l in controls.plans %}<option value="{{ v }}"{% if v == controls.plan %} selected{% endif %}>{{ l }}</option>{% endfor %}</select>
+  </label>
+  {% endif %}
+  {% if controls.statuses %}
+  <label>Status
+    <select name="status">{% for v, l in controls.statuses %}<option value="{{ v }}"{% if v == controls.status %} selected{% endif %}>{{ l }}</option>{% endfor %}</select>
+  </label>
+  {% endif %}
+  {% if controls.fields %}
+  <label>Search by
+    <select name="field">{% for v, l in controls.fields %}<option value="{{ v }}"{% if v == controls.field %} selected{% endif %}>{{ l }}</option>{% endfor %}</select>
+  </label>
+  <input type="text" name="q" value="{{ controls.q }}" placeholder="Keyword">
+  {% endif %}
+  <button class="btn primary" type="submit">Search</button>
+  <span class="spacer"></span>
+  <span class="hint">{{ rows|length }} row(s)</span>
+  {% for b in buttons %}
+    {% if b.kind == "upload" %}
+      <button class="btn" type="button" id="open-upload" {% if b.disabled %}disabled{% endif %}>{{ b.label }}</button>
+    {% elif b.kind == "post" %}
+      <button class="btn{% if b.primary %} primary{% endif %}" type="submit" form="{{ b.form }}" {% if b.disabled %}disabled{% endif %}>{{ b.label }}</button>
+    {% elif b.kind == "dialog" %}
+      <button class="btn{% if b.primary %} primary{% endif %}" type="button" data-dialog="{{ b.dialog }}" {% if b.disabled %}disabled{% endif %}>{{ b.label }}</button>
+    {% else %}
+      <a class="btn" href="{{ b.href }}">{{ b.label }}</a>
+    {% endif %}
+  {% endfor %}
+</form>
+
+<div class="table-wrap tall">
+<table class="grid">
+  <thead><tr>{% for label, kind in columns %}<th class="{{ kind }}">{{ label }}</th>{% endfor %}</tr></thead>
+  <tbody>
+  {% for r in rows %}
+    <tr class="{{ r.cls }}">{% for c in r.cells %}<td class="{{ c.1 }}"{% if c.2 %} title="{{ c.2 }}"{% endif %}>{{ c.0 }}</td>{% endfor %}</tr>
+  {% empty %}
+    <tr><td colspan="{{ columns|length }}" class="hint">No data.</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+<p class="hint">Header color: <span class="legend up">Blue</span> = Excel upload column · <span class="legend sys">Gray</span> = system column</p>
+
+{% if upload %}
+<dialog id="upload-dialog">
+  <form method="post" action="{{ upload.action }}" enctype="multipart/form-data">
+    {% csrf_token %}
+    <input type="hidden" name="return_qs" value="{{ query_string }}">
+    {% if upload.types %}
+      <h2>Upload Type</h2>
+      {% for v, l in upload.types %}<label class="radio"><input type="radio" name="upload_type" value="{{ v }}"{% if forloop.last %} checked{% endif %}> {{ l }}</label>{% endfor %}
+    {% else %}
+      <h2>Upload</h2>
+    {% endif %}
+    <p class="hint">{{ upload.note }}</p>
+    <input type="file" name="file" accept=".xlsx" required>
+    <div class="row end">
+      <button class="btn" type="button" data-close>Cancel</button>
+      <button class="btn primary" type="submit">Upload</button>
+    </div>
+  </form>
+</dialog>
+{% endif %}
+{% block dialogs %}{% endblock %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+  (function () {
+    var up = document.getElementById("upload-dialog");
+    var openUp = document.getElementById("open-upload");
+    if (up && openUp) { openUp.addEventListener("click", function () { up.showModal(); }); }
+    document.querySelectorAll("[data-dialog]").forEach(function (b) {
+      b.addEventListener("click", function () { document.getElementById(b.dataset.dialog).showModal(); });
+    });
+    document.querySelectorAll("dialog [data-close]").forEach(function (b) {
+      b.addEventListener("click", function () { b.closest("dialog").close(); });
+    });
+    var auto = document.querySelector("dialog[data-open]");
+    if (auto) { auto.showModal(); }
+  })();
+</script>
+{% endblock %}

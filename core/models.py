@@ -19,6 +19,7 @@ class UploadBatch(models.Model):
         FAILED = "FAILED", "Failed"         # Error가 있어 반영 불가
 
     module = models.CharField(max_length=10)                    # 예: M1
+    week = models.CharField(max_length=8, blank=True)           # Weekly Module(5~8): 대상 작업 주차
     upload_type = models.CharField(max_length=10, blank=True)   # ADD / CHANGE / INACTIVE
     source_filename = models.CharField(max_length=255)
     uploaded_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name="+")
@@ -33,6 +34,26 @@ class UploadBatch(models.Model):
 
     class Meta:
         ordering = ["-created_at"]
+
+
+class OperationLog(models.Model):
+    """Recalculate / Weekly Reset 감사 기록 (Ⅰ-9) + 재계산 결과 표시 (Ⅳ-7-8)."""
+
+    class Kind(models.TextChoices):
+        RECALC = "RECALC", "Recalculate"
+        RESET = "RESET", "Weekly Reset"
+
+    kind = models.CharField(max_length=10, choices=Kind.choices)
+    week = models.CharField(max_length=8)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name="+")
+    at = models.DateTimeField(default=timezone.now)
+    success = models.BooleanField(default=True)
+    error_count = models.PositiveIntegerField(default=0)
+    warning_count = models.PositiveIntegerField(default=0)
+    details = models.JSONField(default=dict)   # errors, warnings, 건수 등
+
+    class Meta:
+        ordering = ["-at"]
 
 
 class SystemStatus(models.Model):

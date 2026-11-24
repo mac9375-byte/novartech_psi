@@ -9,6 +9,8 @@
 import io
 import re
 from datetime import date, datetime, time
+from decimal import Decimal, InvalidOperation
+from fractions import Fraction
 
 from django.http import HttpResponse
 from openpyxl import Workbook, load_workbook
@@ -117,6 +119,43 @@ def to_int(v):
     if _INT_RE.match(s):
         return int(float(s))
     raise ValueError("Must be a whole number.")
+
+
+def to_decimal(v, max_places=6):
+    """수량 Column: 숫자(쉼표 허용). 빈칸 = None. 소수 자릿수 초과·날짜·문자는 ValueError (자동 반올림 안 함)."""
+    if is_blank(v):
+        return None
+    if isinstance(v, (datetime, date, time)):
+        raise ValueError("Value was converted to a date by Excel. Use text format or a decimal number.")
+    if isinstance(v, bool):
+        raise ValueError("Must be a number.")
+    try:
+        d = Decimal(str(v).strip().replace(",", ""))
+    except InvalidOperation:
+        raise ValueError("Must be a number.")
+    if not d.is_finite():
+        raise ValueError("Must be a number.")
+    if d != d.to_integral_value() and -d.normalize().as_tuple().exponent > max_places:
+        raise ValueError(f"Up to {max_places} decimal places are allowed.")
+    return d
+
+
+def to_fraction(v):
+    """BOM 소요원수: 숫자(0.02) 또는 분수 문자열('1/50') (Ⅵ-3-9). 날짜로 바뀐 값은 ValueError."""
+    if is_blank(v):
+        return None
+    if isinstance(v, (datetime, date, time)):
+        raise ValueError("Q'ty was converted to a date by Excel. Enter it as text or as a decimal (e.g. 0.02).")
+    s = str(v).strip().replace(",", "")
+    try:
+        if "/" in s:
+            a, b = s.split("/", 1)
+            f = Fraction(Decimal(a.strip())) / Fraction(Decimal(b.strip()))
+        else:
+            f = Fraction(to_decimal(s, 10))
+    except (ValueError, ZeroDivisionError, InvalidOperation):
+        raise ValueError("Q'ty must be a number or a fraction (e.g. 0.02 or 1/50).")
+    return f
 
 
 _HEADER_FONT = Font(bold=True)

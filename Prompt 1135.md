@@ -3345,6 +3345,7 @@ H-4. OPEN_PO Upload Header = Currency, Cancel, G/R, In Transit (실제 시트 �
 H-5. 같은 Module·같은 작업 주차 동시 Upload는 거절 + 안내 메시지 (Ⅰ-11, I-1)
 H-6. 표준 업로드 양식 안내 시트를 MD 기준으로 갱신 (v1124). Material Code 'ASSY' 금지를 Ⅵ-1 Validation에 추가
 H-7. Assy Master Upload Header는 'Type' (실제 시트 기준). Download에 No 열 포함. History 변경 구분·변경자, Template Download, 미리보기 후 변경 시 반영 거절, 페이지 나누기 없음은 Material Master와 동일 (Ⅵ-2)
+H-8. Module 3~10은 사용자 지시(끝까지 개발)로 MD 확정 규칙대로 구현했으며, MD에 없어 AI가 정한 사항(P-1~P-12)은 설계/05_Module3-10_구현기록.md에 기록함 (사용자 검토 필요)
 ────────────────────
 [이번 요청]
 ────────────────────

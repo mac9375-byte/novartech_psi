@@ -80,3 +80,16 @@ dialog::backdrop { background: rgba(0,0,0,.3); }
 .radio { display: block; margin: 6px 0; }
 .row.end { justify-content: flex-end; margin-top: 12px; }
 .cellflex { display: flex; align-items: center; gap: 4px; }
+
+/* ---- Module 3~10 표 화면 (Ⅳ-3-6 강조 규칙) ---- */
+.st-inactive { color: #0000ff; }
+.st-nodb { color: #c00000; }
+.grid tr.agg td { font-weight: 700; background: #ededed; }
+.grid td.num { text-align: right; }
+.grid td.negcell { background: #f8cbad; color: #c00000; }
+.grid td.calc { color: #0000ff; }
+.grid tr.blockstart td { border-top: 2px solid #8a8a8a; }
+.banner { padding: 8px 12px; border-radius: 4px; margin-bottom: 8px; background: #fff4e0; color: #8a4b00; }
+.banner.error { background: #fde8e8; color: #c00000; }
+.banner.info { background: #e8f0fb; color: #1f4e79; }
+.ops ul { margin: 4px 0 0 16px; padding: 0; }

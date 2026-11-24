@@ -4,14 +4,14 @@ from django.urls import reverse
 MODULES = [
     ("M1", "Master DB", "1. Material Master", "Material Master", "materials:list"),
     ("M2", "Master DB", "2. Assy Master", "Assy Master", "assies:list"),
-    ("M3", "Master DB", "3. BOM", "BOM", None),
-    ("M4", "Master DB", "4. Safety Stock", "Safety Stock", None),
-    ("M5", "Weekly Data", "5. Inventory", "Inventory", None),
-    ("M6", "Weekly Data", "6. RTF/Production", "RTF/Production", None),
-    ("M7", "PO", "7. Open PO", "Open PO", None),
-    ("M8", "PO", "8. Scheduled Receipt", "Scheduled Receipt", None),
-    ("M9", "Report", "9. Material Requirement", "Material Requirement", None),
-    ("M10", "Report", "10. Material PSI", "Material PSI", None),
+    ("M3", "Master DB", "3. BOM", "BOM", "bom:list"),
+    ("M4", "Master DB", "4. Safety Stock", "Safety Stock", "safety:list"),
+    ("M5", "Weekly Data", "5. Inventory", "Inventory", "inventory:list"),
+    ("M6", "Weekly Data", "6. RTF/Production", "RTF/Production", "plans:list"),
+    ("M7", "PO", "7. Open PO", "Open PO", "openpo:list"),
+    ("M8", "PO", "8. Scheduled Receipt", "Scheduled Receipt", "sched:list"),
+    ("M9", "Report", "9. Material Requirement", "Material Requirement", "psi:mr"),
+    ("M10", "Report", "10. Material PSI", "Material PSI", "psi:psi"),
 ]
 
 
