@@ -3,7 +3,7 @@ from django.urls import reverse
 
 MODULES = [
     ("M1", "Master DB", "1. Material Master", "Material Master", "materials:list"),
-    ("M2", "Master DB", "2. Assy Master", "Assy Master", None),
+    ("M2", "Master DB", "2. Assy Master", "Assy Master", "assies:list"),
     ("M3", "Master DB", "3. BOM", "BOM", None),
     ("M4", "Master DB", "4. Safety Stock", "Safety Stock", None),
     ("M5", "Weekly Data", "5. Inventory", "Inventory", None),

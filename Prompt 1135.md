@@ -1656,7 +1656,7 @@ Excel Upload (시트명 고정, Ⅳ-5-1 및 Ⅶ 참조):
 시트 'MD_Assy':
 Customer Code
 Assy Code
-TYPE
+Type (Upload Header 명칭 2026-11-24 확정)
 Model
 Item
 Customer
@@ -1668,7 +1668,7 @@ Table Column:
 No
 Customer Code
 Assy Code
-TYPE
+Type
 
 Model
 Item
@@ -3344,6 +3344,7 @@ H-3. Open PO 계산 대상 = In Transit + Remain Q'ty > 0 인 행 (Ⅲ-4-2-1, �
 H-4. OPEN_PO Upload Header = Currency, Cancel, G/R, In Transit (실제 시트 기준). Unit Price 미입력 시 Amount 빈칸 (Ⅶ-9)
 H-5. 같은 Module·같은 작업 주차 동시 Upload는 거절 + 안내 메시지 (Ⅰ-11, I-1)
 H-6. 표준 업로드 양식 안내 시트를 MD 기준으로 갱신 (v1124). Material Code 'ASSY' 금지를 Ⅵ-1 Validation에 추가
+H-7. Assy Master Upload Header는 'Type' (실제 시트 기준). Download에 No 열 포함. History 변경 구분·변경자, Template Download, 미리보기 후 변경 시 반영 거절, 페이지 나누기 없음은 Material Master와 동일 (Ⅵ-2)
 ────────────────────
 [이번 요청]
 ────────────────────

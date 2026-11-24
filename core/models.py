@@ -3,6 +3,12 @@ from django.db import models
 from django.utils import timezone
 
 
+class Status(models.TextChoices):
+    """Master Data(Module 1~2) 상태."""
+    ACTIVE = "ACTIVE", "Active"
+    INACTIVE = "INACTIVE", "Inactive"
+
+
 class UploadBatch(models.Model):
     """Excel Upload 1회의 기록 (감사 기록 Ⅰ-9 + 미리보기 데이터)."""
 

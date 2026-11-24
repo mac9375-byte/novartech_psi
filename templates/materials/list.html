@@ -1,24 +1,8 @@
 {% extends "core/module_base.html" %}
 {% block title %}Material Master{% endblock %}
 {% block module_content %}
-<form method="get" class="searchbar">
-  <label>Status
-    <select name="status">{% for v, l in status_filters %}<option value="{{ v }}"{% if v == status %} selected{% endif %}>{{ l }}</option>{% endfor %}</select>
-  </label>
-  <label>Search by
-    <select name="field">{% for v, l in search_fields %}<option value="{{ v }}"{% if v == field %} selected{% endif %}>{{ l }}</option>{% endfor %}</select>
-  </label>
-  <input type="text" name="q" value="{{ q }}" placeholder="Keyword">
-  <button class="btn primary" type="submit">Search</button>
-  <span class="spacer"></span>
-  <span class="hint">{{ rows|length }} row(s)</span>
-  <button class="btn" type="button" id="open-upload" {% if not can_upload %}disabled{% endif %}>Upload</button>
-  <a class="btn" href="{% url 'materials:download' %}?{{ query_string }}">Download</a>
-  <a class="btn" href="{% url 'materials:history' %}?{{ query_string }}">History</a>
-  <button class="btn primary" type="submit" form="save-form" {% if not can_edit %}disabled{% endif %}>Save</button>
-</form>
-
-<form method="post" action="{% url 'materials:save' %}" id="save-form">
+{% include "core/_master_searchbar.html" %}
+<form method="post" action="{{ urls.save }}" id="save-form">
   {% csrf_token %}
   <input type="hidden" name="return_qs" value="{{ query_string }}">
   <div class="table-wrap tall">
@@ -67,52 +51,5 @@
   </table>
   </div>
 </form>
-<p class="hint">Header color: <span class="legend up">Blue</span> = Excel upload column · <span class="legend sys">Gray</span> = system column</p>
-
-{% if can_upload %}
-<dialog id="upload-dialog">
-  <form method="post" action="{% url 'materials:upload' %}" enctype="multipart/form-data">
-    {% csrf_token %}
-    <input type="hidden" name="return_qs" value="{{ query_string }}">
-    <h2>Upload Type</h2>
-    <label class="radio"><input type="radio" name="upload_type" value="ADD"> Add (등록): add new codes only</label>
-    <label class="radio"><input type="radio" name="upload_type" value="CHANGE" checked> Change (변경): update existing + add new</label>
-    <label class="radio"><input type="radio" name="upload_type" value="INACTIVE"> Inactive (삭제): set codes to Inactive</label>
-    <p class="hint">Sheet: <b>MD_Material</b> · <a href="{% url 'materials:template' %}">Download empty template</a></p>
-    <input type="file" name="file" accept=".xlsx" required>
-    <div class="row end">
-      <button class="btn" type="button" id="close-upload">Cancel</button>
-      <button class="btn primary" type="submit">Upload</button>
-    </div>
-  </form>
-</dialog>
-{% endif %}
-{% endblock %}
-
-{% block scripts %}
-<script>
-  (function () {
-    var form = document.getElementById("save-form");
-    // 값을 바꾸면 그 행 자동 선택 + 저장 전 이동 경고 (Ⅵ-1-9-1)
-    form.addEventListener("input", function (e) {
-      var tr = e.target.closest("tr"); if (!tr) return;
-      var box = tr.querySelector("input[name=sel]");
-      if (box && e.target !== box) { box.checked = true; }
-      window.dirty = true;
-    });
-    // 선택된 행만 전송 (나머지 입력칸은 보내지 않음)
-    form.addEventListener("submit", function () {
-      form.querySelectorAll("tbody tr").forEach(function (tr) {
-        var box = tr.querySelector("input[name=sel]");
-        if (box && !box.checked) { tr.querySelectorAll("input,select").forEach(function (el) { el.disabled = true; }); }
-      });
-      window.dirty = false;
-    });
-    var dlg = document.getElementById("upload-dialog");
-    if (dlg) {
-      document.getElementById("open-upload").addEventListener("click", function () { dlg.showModal(); });
-      document.getElementById("close-upload").addEventListener("click", function () { dlg.close(); });
-    }
-  })();
-</script>
+{% include "core/_master_upload.html" %}
 {% endblock %}

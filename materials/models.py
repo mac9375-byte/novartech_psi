@@ -2,6 +2,8 @@ from django.conf import settings
 from django.db import models
 from django.utils import timezone
 
+from core.models import Status  # Master Data 공통 상태 (Active / Inactive)
+
 
 class UnitCode(models.Model):
     """Unit 허용값. 값 추가는 이 표에 행만 추가 (코드 수정 불필요, Ⅵ-1-4 ④)."""
@@ -16,9 +18,6 @@ class UnitCode(models.Model):
         return self.code
 
 
-class Status(models.TextChoices):
-    ACTIVE = "ACTIVE", "Active"
-    INACTIVE = "INACTIVE", "Inactive"
 
 
 class Material(models.Model):

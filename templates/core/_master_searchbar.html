@@ -1,0 +1,16 @@
+<form method="get" class="searchbar">
+  <label>Status
+    <select name="status">{% for v, l in status_filters %}<option value="{{ v }}"{% if v == status %} selected{% endif %}>{{ l }}</option>{% endfor %}</select>
+  </label>
+  <label>Search by
+    <select name="field">{% for v, l in search_fields %}<option value="{{ v }}"{% if v == field %} selected{% endif %}>{{ l }}</option>{% endfor %}</select>
+  </label>
+  <input type="text" name="q" value="{{ q }}" placeholder="Keyword">
+  <button class="btn primary" type="submit">Search</button>
+  <span class="spacer"></span>
+  <span class="hint">{{ rows|length }} row(s)</span>
+  <button class="btn" type="button" id="open-upload" {% if not can_upload %}disabled{% endif %}>Upload</button>
+  <a class="btn" href="{{ urls.download }}?{{ query_string }}">Download</a>
+  <a class="btn" href="{{ urls.history }}?{{ query_string }}">History</a>
+  <button class="btn primary" type="submit" form="save-form" {% if not can_edit %}disabled{% endif %}>Save</button>
+</form>

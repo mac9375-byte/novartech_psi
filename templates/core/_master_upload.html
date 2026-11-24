@@ -1,0 +1,44 @@
+<p class="hint">Header color: <span class="legend up">Blue</span> = Excel upload column · <span class="legend sys">Gray</span> = system column</p>
+{% if can_upload %}
+<dialog id="upload-dialog">
+  <form method="post" action="{{ urls.upload }}" enctype="multipart/form-data">
+    {% csrf_token %}
+    <input type="hidden" name="return_qs" value="{{ query_string }}">
+    <h2>Upload Type</h2>
+    <label class="radio"><input type="radio" name="upload_type" value="ADD"> Add (등록): add new codes only</label>
+    <label class="radio"><input type="radio" name="upload_type" value="CHANGE" checked> Change (변경): update existing + add new</label>
+    <label class="radio"><input type="radio" name="upload_type" value="INACTIVE"> Inactive (삭제): set codes to Inactive</label>
+    <p class="hint">Sheet: <b>{{ sheet }}</b> · <a href="{{ urls.template }}">Download empty template</a></p>
+    <input type="file" name="file" accept=".xlsx" required>
+    <div class="row end">
+      <button class="btn" type="button" id="close-upload">Cancel</button>
+      <button class="btn primary" type="submit">Upload</button>
+    </div>
+  </form>
+</dialog>
+{% endif %}
+<script>
+  (function () {
+    var form = document.getElementById("save-form");
+    // 값을 바꾸면 그 행 자동 선택 + 저장 전 이동 경고 (Ⅵ-1-9-1)
+    form.addEventListener("input", function (e) {
+      var tr = e.target.closest("tr"); if (!tr) return;
+      var box = tr.querySelector("input[name=sel]");
+      if (box && e.target !== box) { box.checked = true; }
+      window.dirty = true;
+    });
+    // 선택된 행만 전송 (나머지 입력칸은 보내지 않음)
+    form.addEventListener("submit", function () {
+      form.querySelectorAll("tbody tr").forEach(function (tr) {
+        var box = tr.querySelector("input[name=sel]");
+        if (box && !box.checked) { tr.querySelectorAll("input,select").forEach(function (el) { el.disabled = true; }); }
+      });
+      window.dirty = false;
+    });
+    var dlg = document.getElementById("upload-dialog");
+    if (dlg) {
+      document.getElementById("open-upload").addEventListener("click", function () { dlg.showModal(); });
+      document.getElementById("close-upload").addEventListener("click", function () { dlg.close(); });
+    }
+  })();
+</script>
