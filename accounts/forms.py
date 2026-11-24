@@ -5,6 +5,13 @@ from .models import User
 from .validators import normalize_username, validate_username
 
 
+class NEW_PW(forms.PasswordInput):
+    """새 비밀번호 입력칸: 브라우저가 저장된 비밀번호를 자동으로 채우지 않도록 (한쪽 칸만 채워져 불일치 방지)."""
+
+    def __init__(self, attrs=None):
+        super().__init__(attrs={"autocomplete": "new-password", **(attrs or {})})
+
+
 class LoginForm(forms.Form):
     username = forms.CharField(label="Purchaser ID", max_length=150)
     password = forms.CharField(label="Password", widget=forms.PasswordInput)
@@ -13,9 +20,10 @@ class LoginForm(forms.Form):
 class SignupForm(forms.Form):
     """Sign up (Ⅴ-3). 저장 시 Class=User, ID Status=Requested."""
 
-    username = forms.CharField(label="Purchaser ID", max_length=150, strip=False)
-    password = forms.CharField(label="P/W", widget=forms.PasswordInput, strip=False)
-    password2 = forms.CharField(label="P/W Again", widget=forms.PasswordInput, strip=False)
+    username = forms.CharField(label="Purchaser ID", max_length=150, strip=False,
+                               widget=forms.TextInput(attrs={"autocomplete": "off"}))
+    password = forms.CharField(label="P/W", widget=NEW_PW(), strip=False)
+    password2 = forms.CharField(label="P/W Again", widget=NEW_PW(attrs={"data-match": "id_password"}), strip=False)
     name = forms.CharField(label="Name", max_length=100)
     email = forms.EmailField(label="e-Mail")
     tel = forms.CharField(label="Tel", max_length=30, required=False)
@@ -46,9 +54,11 @@ class MyInfoForm(forms.Form):
     name = forms.CharField(label="Name", max_length=100)
     email = forms.EmailField(label="e-Mail")
     tel = forms.CharField(label="Tel", max_length=30, required=False)
-    old_password = forms.CharField(label="Old P/W", widget=forms.PasswordInput, required=False, strip=False)
-    new_password = forms.CharField(label="New P/W", widget=forms.PasswordInput, required=False, strip=False)
-    new_password2 = forms.CharField(label="P/W Again", widget=forms.PasswordInput, required=False, strip=False)
+    old_password = forms.CharField(label="Old P/W", required=False, strip=False,
+                                   widget=forms.PasswordInput(attrs={"autocomplete": "current-password"}))
+    new_password = forms.CharField(label="New P/W", widget=NEW_PW(), required=False, strip=False)
+    new_password2 = forms.CharField(label="P/W Again", widget=NEW_PW(attrs={"data-match": "id_new_password"}),
+                                    required=False, strip=False)
 
     def __init__(self, *args, user, **kwargs):
         self.user = user

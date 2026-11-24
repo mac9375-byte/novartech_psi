@@ -32,6 +32,20 @@
     {% block content %}{% endblock %}
   </main>
   <script>
+    // 'P/W Again' 칸: 입력하는 즉시 첫 번째 비밀번호와 같은지 표시
+    document.querySelectorAll("input[data-match]").forEach(function (again) {
+      var first = document.getElementById(again.dataset.match);
+      var hint = document.createElement("div");
+      again.insertAdjacentElement("afterend", hint);
+      function check() {
+        if (!again.value) { hint.textContent = ""; return; }
+        var ok = again.value === first.value;
+        hint.textContent = ok ? "✓ Passwords match." : "Passwords do not match.";
+        hint.className = ok ? "ok" : "error";
+      }
+      again.addEventListener("input", check);
+      first.addEventListener("input", check);
+    });
     // 저장하지 않은 수정내용이 있으면 화면 이동·Log-out 전에 경고 (Ⅴ-1-7)
     window.dirty = false;
     window.addEventListener("beforeunload", function (e) { if (window.dirty) { e.preventDefault(); e.returnValue = ""; } });
