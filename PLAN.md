@@ -21,9 +21,17 @@ GitHub에서 zip으로 받은 PSI 시스템을 이 PC에서 실행하고, 이후
 - Git: `git init` 후 origin(mac9375-byte/novartech_psi) main 이력에 연결. 작업 폴더 = origin/main `8879d18` 동일(이 두 파일 제외)
 - 디자인을 전역 스킬 `~/.claude/skills/novatech-design`으로 추출
 
+### 2026-11-26 DB 백업 명령 (브랜치 `feat/db-backup`)
+- `core/management/commands/backup_db.py`: `pg_dump -Fc` → `backups/novatech_psi_YYYYMMDD_HHMMSS.dump`, `--keep`(기본 14) 초과분 오래된 것부터 삭제, 실패 시 반쯤 쓴 파일 삭제
+- 테스트 `core.tests.BackupDbTests` 추가(먼저 실패 확인 → 구현 후 통과). 전체 94개 통과
+- 실DB 백업 → 임시 DB `psi_restore_check`에 `pg_restore` → 자재 5·사용자 2건 일치 확인 후 임시 DB 삭제
+- README에 백업·복원 방법 추가, `.gitignore`에 `backups/`
+
 ## 다음 단계 (개선 제언, 우선순위순 — 착수 전 사용자 확인)
-1. [ ] DB 자동 백업: 작업 스케줄러 + `pg_dump` 일일 백업, 최근 N개 보관. Weekly Reset 직전 자동 백업 검토
-   - 검증: 백업 파일 생성 → 테스트 DB에 복원 확인
+1. [ ] DB 자동 백업
+   - [x] `backup_db` 명령 + 복원 검증
+   - [ ] Windows 작업 스케줄러 일일 등록 (2026-11-26 사용자 보류 — 당분간 수동 `backup_db`)
+   - [ ] Weekly Reset 직전 자동 백업 검토
 2. [ ] README 보완: 한글 컴퓨터 이름 설치 실패 우회, psycopg DLL 차단 이슈
 3. [ ] CI: GitHub Actions + PostgreSQL 서비스로 테스트 자동 실행
 4. [ ] 설치 일괄 스크립트(.env 생성→DB 생성→migrate→Master 생성)

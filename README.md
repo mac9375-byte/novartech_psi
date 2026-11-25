@@ -111,6 +111,17 @@ POC_SKIP_LOGIN=1
 
 ---
 
+## DB 백업
+```
+.venv\Scripts\python manage.py backup_db            # backups\ 에 저장, 최근 14개만 보관
+.venv\Scripts\python manage.py backup_db --keep 30  # 보관 개수 변경
+```
+- `pg_dump` custom 형식(`novatech_psi_YYYYMMDD_HHMMSS.dump`). `backups/`는 Git에 올리지 않습니다.
+- `pg_dump`는 PATH → `C:\Program Files\PostgreSQL\17\bin` 순서로 찾습니다. 다른 위치면 `.env`에 `PG_BIN=<PostgreSQL bin 폴더>`.
+- 복원: 빈 DB를 만든 뒤 `pg_restore -h localhost -U novatech_app -d <DB 이름> --no-owner <백업 파일>`
+
+---
+
 ## 주간 사용 순서 (Admin)
 1. (필요 시) **10. Material PSI → Weekly Reset**: 이번 주 Module 5~8 데이터 초기화
 2. **Module 5~8 Upload**: Inventory → RTF/Production → **Open PO → Scheduled Receipt** (Open PO 먼저)
@@ -126,7 +137,7 @@ POC_SKIP_LOGIN=1
 ```
 .venv\Scripts\python manage.py test
 ```
-자동 테스트 93개 (PostgreSQL 필요, 테스트용 DB는 자동 생성·삭제).
+자동 테스트 94개 (PostgreSQL 필요, 테스트용 DB는 자동 생성·삭제).
 
 ---
 
@@ -157,5 +168,5 @@ Prompt 1135.md   요구사항 정의서 (업무 규칙 원본)
 - 운영 환경(클라우드 / 사내 서버) 결정 및 배포
 - PoC 자동 로그인 제거, `DJANGO_DEBUG=0`, HTTPS
 - 임시 비밀번호 e-mail 발송 연결 (현재는 서버 실행 화면에 출력)
-- DB 자동 백업
+- DB 자동 백업: `backup_db` 명령은 있음. 운영 서버에서 매일 실행되도록 예약 + 백업 파일을 다른 디스크/저장소로 복사
 - v1.0 범위 외(다음 버전): 발주필요수량 계산, MOQ, 자재 안전재고, 발주 제안

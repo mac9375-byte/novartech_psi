@@ -2,7 +2,7 @@
 import io
 from datetime import datetime
 
-from django.test import SimpleTestCase
+from django.test import SimpleTestCase, TestCase
 from openpyxl import Workbook
 
 from .excel import ERROR, INFO, read_sheet, to_code, to_int, to_text
@@ -73,3 +73,20 @@ class ValueTests(SimpleTestCase):
 
     def test_to_text(self):
         self.assertEqual([to_text(" a "), to_text("-"), to_text(""), to_text(12.0)], ["a", None, None, "12"])
+
+
+class BackupDbTests(TestCase):
+    def test_writes_pg_dump_file_and_keeps_only_latest(self):
+        import tempfile
+        from pathlib import Path
+
+        from django.core.management import call_command
+
+        with tempfile.TemporaryDirectory() as d:
+            for old in ("novatech_psi_20000101_000000.dump", "novatech_psi_20000102_000000.dump"):
+                Path(d, old).write_bytes(b"old")
+            call_command("backup_db", dir=d, keep=2, stdout=io.StringIO())
+            files = sorted(p.name for p in Path(d).glob("*.dump"))
+            self.assertEqual(len(files), 2)
+            self.assertEqual(files[0], "novatech_psi_20000102_000000.dump")  # 가장 오래된 것부터 삭제
+            self.assertEqual(Path(d, files[1]).read_bytes()[:5], b"PGDMP")  # pg_dump custom 형식
