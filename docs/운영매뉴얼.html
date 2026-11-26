@@ -126,22 +126,30 @@ footer { color: var(--muted); font-size: 13px; border-top: 1px solid var(--line)
 
 <main>
 <header class="cover">
-  <span class="eyebrow">㈜노바텍 구매팀 · v1.0 PoC · 2026-11</span>
+  <span class="eyebrow">㈜노바텍 구매팀 · v1.1 PoC · 2026-11</span>
   <h1>Material PSI 분석 도우미 운영 매뉴얼</h1>
   <p class="lead">매주 월요일 구매팀이 하는 "향후 14주 자재 과부족 점검과 발주 판단"을 이 시스템으로 진행하는 방법을 설명합니다. 앞부분은 전체 운영 흐름, 뒷부분은 10개 Tab 각각의 사용법입니다.</p>
+  <div class="note"><b>v1.1에서 달라진 점 (2026-11-26)</b>
+    <ul>
+      <li><b>발주필요수량(Order Requirement)</b>: 10 Material PSI에 5번째 행 추가. 부족분을 MOQ·발주 단위로 맞추고 L/T만큼 앞당긴 <b>발주 주차</b>에 표시 (4장)</li>
+      <li><b>1 Material Master</b>에 <b>Mat. Safety Stock · MOQ · Rounding Value</b> 열 추가 (자재 단위, 선택 입력)</li>
+      <li><b>모든 Tab 상단</b> <code>● Need Recalculation</code> 옆에 Recalculate 버튼 (Admin)</li>
+      <li><b>DB 백업 명령</b> <code>backup_db</code> (9장)</li>
+    </ul>
+  </div>
 </header>
 
 <!-- 1 -->
 <section id="overview">
   <h2>1. 시스템 개요</h2>
-  <p>PSI는 자재가 <b>얼마나 필요하고(Requirement)</b>, <b>얼마나 들어오며(Scheduled Receipt)</b>, 그 결과 <b>얼마가 남는지(Balance)</b>를 주차별로 보는 분석입니다. 이 시스템은 생산관리팀의 RTF·Production Plan과 BOM으로 자재 소요량을 자동 계산하고, 재고·입고예정·Open PO와 대조해 <b>어느 자재가 몇 주차부터 부족한지</b>를 보여줍니다.</p>
+  <p>PSI는 자재가 <b>얼마나 필요하고(Requirement)</b>, <b>얼마나 들어오며(Scheduled Receipt)</b>, 그 결과 <b>얼마가 남는지(Balance)</b>를 주차별로 보는 분석입니다. 이 시스템은 생산관리팀의 RTF·Production Plan과 BOM으로 자재 소요량을 자동 계산하고, 재고·입고예정·Open PO와 대조해 <b>어느 자재가 몇 주차부터 부족한지</b>를 보여주고, v1.1부터는 MOQ·L/T를 반영해 <b>언제 얼마를 발주해야 하는지(발주필요수량)</b>까지 계산합니다.</p>
   <p>10개 Tab은 성격에 따라 세 묶음입니다.</p>
   <div class="table-scroll"><table>
     <thead><tr><th>묶음</th><th>Tab</th><th>성격</th><th>언제 바꾸나</th></tr></thead>
     <tbody>
       <tr><td>기준정보</td><td>1 Material Master · 2 Assy Master · 3 BOM · 4 Safety Stock</td><td>계속 쓰는 Master Data. 주차와 무관하게 항상 최신값</td><td>신규 자재·제품, 사양·L/T·BOM 변경이 생길 때마다</td></tr>
       <tr><td>주간 데이터</td><td>5 Inventory · 6 RTF/Production · 7 Open PO · 8 Scheduled Receipt</td><td>작업 주차(W0)별로 저장. 과거 주차는 그대로 보존</td><td>매주 월요일 새로 Upload</td></tr>
-      <tr><td>계산 결과</td><td>9 Material Requirement · 10 Material PSI</td><td>Upload 없음. 1~8 데이터로 시스템이 계산</td><td>10번 화면의 <b>Recalculate</b>를 누를 때만 갱신</td></tr>
+      <tr><td>계산 결과</td><td>9 Material Requirement · 10 Material PSI</td><td>Upload 없음. 1~8 데이터로 시스템이 계산</td><td><b>Recalculate</b>(10번 화면 또는 각 Tab 상단 버튼)를 누를 때만 갱신</td></tr>
     </tbody>
   </table></div>
   <p>계산은 두 기준으로 따로 합니다. 두 결과를 합치지 않습니다.</p>
@@ -215,7 +223,7 @@ flowchart LR
     <li><div>
       <h4>(필요 시) Weekly Reset</h4>
       <span class="who">Admin · 10 Material PSI 화면</span>
-      <p>같은 주에 분석을 다시 할 때(예: 월요일 분석 후 수요일에 변경된 재고·발주로 재분석) 이번 주 5~8번 데이터를 비웁니다. 지난 데이터와 섞이는 것을 막기 위한 단계입니다. 처음 분석하는 주에는 하지 않아도 됩니다.</p>
+      <p>같은 주에 분석을 다시 할 때(예: 월요일 분석 후 수요일에 변경된 재고·발주로 재분석) 이번 주 5~8번 데이터를 비웁니다. 지난 데이터와 섞이는 것을 막기 위한 단계입니다. 처음 분석하는 주에는 하지 않아도 됩니다. 실행 전에 <code>backup_db</code>로 DB를 백업해 두기를 권합니다(9장).</p>
     </div></li>
     <li><div>
       <h4>주간 데이터 Upload</h4>
@@ -237,7 +245,7 @@ flowchart LR
     <li><div>
       <h4>결과 확인과 구매 판단</h4>
       <span class="who">구매 담당자 전원 · 조회</span>
-      <p>10 Material PSI에서 자재별 과부족을 보고, 필요하면 9 Material Requirement에서 어느 Assy 때문에 소요가 생겼는지 확인합니다. 판단 기준은 4장에 있습니다.</p>
+      <p>10 Material PSI에서 자재별 과부족과 <b>Order Requirement(발주필요수량)</b>를 보고, 필요하면 9 Material Requirement에서 어느 Assy 때문에 소요가 생겼는지 확인합니다. 발주필요수량은 시스템 제안값이며 실제 발주 수량·시점은 담당자가 확정합니다. 판단 기준은 4장에 있습니다.</p>
     </div></li>
     <li><div>
       <h4>발주·납기 조정 후 재분석</h4>
@@ -251,7 +259,7 @@ flowchart LR
 <!-- 4 -->
 <section id="decision">
   <h2>4. PSI 판독과 구매 판단</h2>
-  <p>10 Material PSI는 자재 하나, 기준(RTF / Prod.) 하나마다 4행을 보여줍니다.</p>
+  <p>10 Material PSI는 자재 하나, 기준(RTF / Prod.) 하나마다 5행을 보여줍니다.</p>
   <div class="table-scroll"><table>
     <thead><tr><th>행</th><th>계산</th></tr></thead>
     <tbody>
@@ -272,7 +280,23 @@ flowchart LR
       <tr><td>둘 다 0 이상</td><td>14주 동안 부족 없음</td><td>조치 없음. 과잉재고 여부만 확인</td></tr>
     </tbody>
   </table></div>
-  <div class="note warn">v1.0에는 발주필요수량 자동 계산, MOQ, 발주 제안 기능이 없습니다. 발주 수량은 PSI 결과를 보고 담당자가 판단합니다.</div>
+  <h3>발주필요수량 계산 예 (v1.1)</h3>
+  <p>자재 M: 자재 안전재고 1,000 · MOQ 10,000 · Rounding Value 5,000 · L/T 3주</p>
+  <div class="table-scroll"><table>
+    <thead><tr><th>주차</th><th>W0</th><th>W1</th><th>W2</th><th>W3</th><th>W4</th><th>W5</th></tr></thead>
+    <tbody>
+      <tr><td>PO Balance</td><td class="num">8,000</td><td class="num">5,000</td><td class="num">2,000</td><td class="num">−1,000</td><td class="num">−4,000</td><td class="num">−7,000</td></tr>
+      <tr><td>PO Balance − 자재 안전재고 (+ 앞서 추가한 발주량)</td><td class="num">7,000</td><td class="num">4,000</td><td class="num">1,000</td><td class="num">−2,000</td><td class="num">5,000</td><td class="num">2,000</td></tr>
+      <tr><td>Order Requirement (발주 주차에 표시)</td><td class="num"><b>10,000</b></td><td class="num"></td><td class="num"></td><td class="num"></td><td class="num"></td><td class="num"></td></tr>
+    </tbody>
+  </table></div>
+  <ul>
+    <li>W3에서 처음 부족(−2,000) → MOQ 10,000으로 올림 → Rounding 5,000의 배수라 10,000 그대로</li>
+    <li>W3에 받으려면 L/T 3주 전인 <b>W0에 발주</b> → W0 칸에 10,000 표시</li>
+    <li>이 10,000이 들어온다고 보고 W4 이후를 다시 계산 → W5까지 부족 없음</li>
+    <li>부족 주차 − L/T가 W0보다 앞이면(이미 늦음) W0에 더하고 <span class="sw neg">빨간 칸</span>으로 표시. 마우스를 올리면 Overdue 수량이 나옵니다</li>
+  </ul>
+  <div class="note warn">발주필요수량은 <b>PO Balance 기준</b>의 제안값입니다. RTF·Prod. 두 기준에 각각 계산되므로 어느 기준으로 발주할지는 담당자가 정합니다. 발주 제안을 확정·저장하거나 PO를 만드는 기능은 아직 없습니다(다음 버전).</div>
 </section>
 
 <!-- 5 -->
@@ -342,6 +366,7 @@ flowchart LR
       <tr><td><b>굵은 글씨 + 회색 바탕 행</b></td><td>BOM의 Assy 행, 9번 Total 행, 10번 Requirement 행</td></tr>
       <tr><td><span class="sw neg">-1,050</span></td><td>음수(부족) 셀</td></tr>
       <tr><td><span class="sw calc">9,000</span></td><td>Calculated 입고예정</td></tr>
+      <tr><td><span class="sw neg">10,000</span> (Order Requirement의 W0)</td><td>(v1.1) 이미 L/T가 지나 늦은 발주. 마우스를 올리면 Overdue 수량</td></tr>
     </tbody>
   </table></div>
 </section>
@@ -392,7 +417,7 @@ flowchart LR
       <dt>Upload 시트</dt><dd><code>SAFETY</code>: Customer Code, Safety Q'ty</dd>
       <dt>Upload 방식</dt><dd><b>전체교체</b>. 파일에 없는 Code는 삭제됩니다. 바뀐 행만 History(Add / Change / Delete)에 남음</dd>
       <dt>필수 규칙</dt><dd>0 이상의 정수 · 빈칸은 0 · Customer Code 중복 불가</dd>
-      <dt>참고</dt><dd>6번에 RTF·Prod.가 모두 없고 Safety만 있는 Assy는 Recalculate 때 RTF(14주차 = Safety)·Prod.(0) 행이 자동 생성됩니다</dd>
+      <dt>참고</dt><dd>6번에 RTF·Prod.가 모두 없고 Safety만 있는 Assy는 Recalculate 때 RTF(14주차 = Safety)·Prod.(0) 행이 자동 생성됩니다. <b>자재 단위 안전재고</b>는 여기가 아니라 1번 Material Master의 <b>Mat. Safety Stock</b>에 넣습니다(v1.1, 발주필요수량 계산에 사용)</dd>
     </dl>
   </article>
 
@@ -456,7 +481,8 @@ flowchart LR
     <p>최종 분석 화면이자 <b>Recalculate·Weekly Reset을 실행하는 곳</b>입니다.</p>
     <dl class="kv">
       <dt>화면 구조</dt><dd>자재 × Plan마다 Requirement / Scheduled Receipt / Inventory Balance / PO Balance / Order Requirement 5행. Opening Inventory, Open PO 열은 기준별 값. Open PO 셀에 마우스를 올리면 PO No·날짜·수량</dd>
-      <dt>Recalculate</dt><dd>Admin, 이번 주만. 1~8 저장값으로 9·10번 계산. 계산 전 점검에서 Error(BOM Unit 불일치, 입고예정 &gt; Open PO)가 있으면 중단하고 이전 결과 유지. 동시에 한 사람만 실행</dd>
+      <dt>Order Requirement</dt><dd>(v1.1) 5번째 행. 발주해야 할 주차에 발주필요수량 표시. 계산 방법과 예는 4장. v1.1 이전에 계산한 결과는 빈칸이며 Recalculate하면 채워짐</dd>
+      <dt>Recalculate</dt><dd>Admin, 이번 주만. 1~8 저장값으로 9·10번 계산. 계산 전 점검에서 Error(BOM Unit 불일치, 입고예정 &gt; Open PO)가 있으면 중단하고 이전 결과 유지. 동시에 한 사람만 실행. (v1.1) 데이터가 바뀌면 모든 Tab 상단 <code>● Need Recalculation</code> 옆 버튼으로도 실행</dd>
       <dt>Weekly Reset</dt><dd>Admin, 이번 주만. 확인 창 → Confirm 시 이번 주 5~8번 데이터 삭제 → "Upload new weekly data in this week." 안내. 1~4번과 과거 주차는 그대로, 9·10번은 다음 Recalculate까지 이전 결과 유지</dd>
       <dt>Operation log</dt><dd>Recalculate·Weekly Reset 기록과 마지막 계산의 Error·Warning 상세를 Excel로</dd>
     </dl>
@@ -480,6 +506,7 @@ flowchart LR
       <tr><td>Remain Q'ty is negative</td><td>Error</td><td>Cancel + G/R + In Transit이 PO Q'ty보다 큼. PO 데이터 확인</td></tr>
       <tr><td>Scheduled Receipt … greater than Open PO</td><td>Error</td><td>입고예정 합계가 미입고 발주보다 많음. 입고예정 또는 Open PO 수정 (신규 PO 누락 여부 확인)</td></tr>
       <tr><td>Recalculation failed — BOM … Unit</td><td>Error</td><td>1번 Unit을 바꾼 뒤 BOM을 그대로 둠. 3번에서 Change로 BOM 재Upload</td></tr>
+      <tr><td>Must be a whole number of 0 or more (Mat. Safety Stock · MOQ · Rounding Value)</td><td>Error</td><td>(v1.1) 음수·소수·문자가 들어감. 빈칸(0) 또는 0 이상 정수로 수정</td></tr>
       <tr><td>Data was changed after this preview</td><td>안내</td><td>미리보기 뒤 다른 사람이 먼저 반영함. 다시 Upload</td></tr>
       <tr><td>Not in … Master (No DB)</td><td>Warning</td><td>Master 미등록 Code. 계산에는 포함됨. 1·2번에 등록 권장</td></tr>
       <tr><td>Inactive …; included</td><td>Warning</td><td>Inactive Code의 수량도 계산에 포함됨. 의도된 것인지 확인</td></tr>
@@ -501,12 +528,18 @@ flowchart LR
   <p>이번 주 5~8번 데이터만 지워집니다. 같은 파일을 다시 Upload하고 Recalculate하면 복구됩니다. 9·10번 결과는 Recalculate 전까지 남아 있습니다.</p>
   <h4>Material Master에 없는 자재가 PSI에 나옵니다</h4>
   <p>BOM·재고·PO에만 있는 Code도 계산에 포함하고 <span class="sw nodb">No DB</span>로 표시합니다. 1번에 등록하면 Desc.·Spec.이 채워지고, 8번 자동 입고예정도 계산됩니다(L/T 필요).</p>
+  <h4>Order Requirement 행이 비어 있습니다</h4>
+  <p>v1.1 적용 전에 계산한 결과이거나 아직 Recalculate를 하지 않은 경우입니다. Recalculate를 누르세요. Material Master에 없는(No DB) 자재는 L/T를 몰라 계산하지 않습니다.</p>
+  <h4>MOQ·발주 단위를 넣었는데 Change Upload 후 0이 됐습니다</h4>
+  <p>Change Upload 파일에 Mat. Safety Stock·MOQ·Rounding Value 열이 없으면 0으로 덮어씁니다. 1번 화면의 Template 또는 Download로 받은 최신 양식을 쓰세요. 반영 전 미리보기 변경내역에서 확인할 수 있습니다.</p>
+  <h4>DB는 어떻게 백업하나요?</h4>
+  <p>서버 PC에서 <code>.venv\Scripts\python manage.py backup_db</code>를 실행하면 <code>backups</code> 폴더에 저장되고 최근 14개만 남습니다(<code>--keep 30</code>으로 개수 변경). Weekly Reset이나 대량 Upload 전에 실행하기를 권합니다. 복원 방법은 README에 있습니다.</p>
   <h4>과거 주차 결과가 지금 Master 변경으로 바뀌나요?</h4>
   <p>아니요. 과거 주차 계산값은 그때 Snapshot으로 남습니다. 다만 화면의 Desc.·Spec. 같은 설명 문구는 최신 Master 값으로 보입니다.</p>
 </section>
 
 <footer>
-  Material PSI 분석 도우미 v1.0 (PoC) 기준 · 업무 규칙 원본: 요구사항 정의서 <code>Prompt 1135.md</code> · 소스: github.com/mac9375-byte/novartech_psi
+  Material PSI 분석 도우미 v1.1 (PoC) 기준 · 업무 규칙 원본: 요구사항 정의서 <code>Prompt 1135.md</code> · 소스: github.com/mac9375-byte/novartech_psi
 </footer>
 </main>
 </div>
