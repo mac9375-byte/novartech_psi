@@ -171,8 +171,9 @@ footer { color: var(--muted); font-size: 13px; border-top: 1px solid var(--line)
       <tr><td>Scheduled Receipt</td><td>주차별 입고예정. <b>검정</b> = 업체와 협의해 올린 값(Manual), <span class="sw calc">파랑</span> = 시스템이 Open PO 잔량을 L/T 주차에 자동 배치한 값(Calculated)</td></tr>
       <tr><td>Inventory Balance (재고 과부족)</td><td>기초재고 + 누적 입고예정 − 누적 소요량. 입고 시점을 반영한 주별 잔량</td></tr>
       <tr><td>PO Balance (PO 과부족)</td><td>기초재고 + Open PO 전량 − 누적 소요량. 입고 시점과 무관하게 이미 발주한 수량으로 충분한지</td></tr>
+      <tr><td>Order Requirement (발주필요수량)</td><td>v1.1. PO 과부족이 자재 안전재고 밑으로 내려가는 만큼(MOQ 미만이면 MOQ, Rounding Value 배수로 올림) L/T 주차만큼 앞당긴 <b>발주 주차</b>에 표시</td></tr>
       <tr><td>No DB</td><td>Master에 등록되지 않은 Code. Upload는 되고 계산에도 포함되지만 <span class="sw nodb">빨간 글씨</span>로 표시하고 Warning으로 보고</td></tr>
-      <tr><td>● Need Recalculation</td><td>마지막 계산 이후 데이터가 바뀌었다는 표시. Recalculate를 눌러야 9·10번이 최신이 됨</td></tr>
+      <tr><td>● Need Recalculation</td><td>마지막 계산 이후 데이터가 바뀌었다는 표시. Recalculate를 눌러야 9·10번이 최신이 됨. Admin에게는 모든 Tab 상단에 바로 실행하는 <b>Recalculate</b> 버튼이 함께 보임</td></tr>
     </tbody>
   </table></div>
 </section>
@@ -231,7 +232,7 @@ flowchart LR
     <li><div>
       <h4>Recalculate</h4>
       <span class="who">Admin · 10 Material PSI 화면</span>
-      <p>우측 상단 <b>Recalculate</b>를 누르면 1~8 데이터로 9·10번을 다시 계산합니다. 완료 메시지와 함께 <code>Final Calculation</code> 시각이 바뀌고 <code>● Need Recalculation</code>이 사라집니다. Error가 있으면 계산하지 않고 이전 결과를 유지합니다(8장 참고).</p>
+      <p>우측 상단 <b>Recalculate</b>를 누르면(다른 Tab에서도 <code>● Need Recalculation</code> 옆 버튼으로 실행 가능) 1~8 데이터로 9·10번을 다시 계산합니다. 완료 메시지와 함께 <code>Final Calculation</code> 시각이 바뀌고 <code>● Need Recalculation</code>이 사라집니다. Error가 있으면 계산하지 않고 이전 결과를 유지합니다(8장 참고).</p>
     </div></li>
     <li><div>
       <h4>결과 확인과 구매 판단</h4>
@@ -258,13 +259,14 @@ flowchart LR
       <tr><td>Scheduled Receipt</td><td>Manual(검정) + Calculated(<span class="sw calc">파랑</span>) 입고예정. 셀에 마우스를 올리면 구성 표시</td></tr>
       <tr><td>Inventory Balance</td><td>주차 t = 기초재고 + Σ입고예정(W0~t) − Σ소요량(W0~t)</td></tr>
       <tr><td>PO Balance</td><td>주차 t = 기초재고 + Open PO 전량 − Σ소요량(W0~t). 입고예정은 더하지 않음</td></tr>
+      <tr><td>Order Requirement</td><td>(v1.1) 주차 t마다 PO Balance + 앞서 추가한 발주량 − 자재 안전재고가 음수면 그 부족분을 정수로 올림 → <b>MOQ 미만이면 MOQ</b> → <b>Rounding Value(발주·포장 단위)의 배수로 올림</b>해서 발주. 예: 부족 12,300, MOQ 10,000, Rounding 5,000 → 15,000. 표시 위치 = <b>입고 필요 주차 − L/T</b>(발주해야 하는 주차). 이미 늦은 수량은 W0에 합산하고 <span class="sw neg">빨간 칸</span>(마우스를 올리면 Overdue 수량). Material Master에 없는 자재는 계산하지 않음</td></tr>
     </tbody>
   </table></div>
   <h3>판단 기준</h3>
   <div class="table-scroll"><table>
     <thead><tr><th>상황</th><th>뜻</th><th>조치</th></tr></thead>
     <tbody>
-      <tr><td><span class="sw neg">PO Balance 음수</span></td><td>이미 발주한 수량을 다 받아도 부족</td><td><b>신규 발주</b>. 음수가 처음 나오는 주차와 L/T를 보고 발주 시점·수량 결정</td></tr>
+      <tr><td><span class="sw neg">PO Balance 음수</span></td><td>이미 발주한 수량을 다 받아도 부족</td><td><b>신규 발주</b>. Order Requirement 행의 주차·수량을 기준으로 발주 시점·수량 결정 (빨간 W0 = 이미 늦음, 즉시 발주·납기 협의)</td></tr>
       <tr><td><span class="sw neg">Inventory Balance 음수</span>, PO Balance 0 이상</td><td>수량은 발주돼 있으나 입고가 늦음</td><td><b>납기 당김 검토</b>. 업체와 협의해 입고예정을 앞당기고 8번 재Upload</td></tr>
       <tr><td>Scheduled Receipt에 <span class="sw calc">파란 숫자</span>가 큼</td><td>업체와 확정하지 않은 Open PO 잔량을 L/T 주차에 가정함</td><td>업체와 실제 납기를 확정해 8번에 Manual로 올리면 파란 값이 줄어듦</td></tr>
       <tr><td>둘 다 0 이상</td><td>14주 동안 부족 없음</td><td>조치 없음. 과잉재고 여부만 확인</td></tr>
@@ -352,11 +354,11 @@ flowchart LR
     <h3>1. Material Master <span class="grp">Master DB · /material-master/</span></h3>
     <p>구매 자재의 기준정보. 다른 모든 Tab이 Desc.·Spec.·Unit·L/T·Status를 여기서 가져옵니다.</p>
     <dl class="kv">
-      <dt>Upload 시트</dt><dd><code>MD_Material</code>: Material Code, Desc., Spec., Unit, Purchaser ID, Vendor, Country, L/T(Weeks)</dd>
+      <dt>Upload 시트</dt><dd><code>MD_Material</code>: Material Code, Desc., Spec., Unit, Purchaser ID, Vendor, Country, L/T(Weeks), Mat. Safety Stock, MOQ, Rounding Value</dd>
       <dt>Upload Type</dt><dd><b>Add</b> 신규만 등록(기존 Code는 무시) · <b>Change</b> 기존 덮어쓰기 + 신규 등록 + Inactive 재활성화 · <b>Inactive</b> 파일의 Code를 Inactive로(Code 열만 사용)</dd>
-      <dt>필수 규칙</dt><dd>Material Code 중복 불가(대문자로 저장) · <b>Unit 필수</b>(EA, SHEET, SET, G, KG, MM, M) · <b>L/T 필수, 1 이상 정수</b> · Purchaser ID는 등록된 사용자 ID · <code>ASSY</code>는 Code로 사용 불가</dd>
+      <dt>필수 규칙</dt><dd>Material Code 중복 불가(대문자로 저장) · <b>Unit 필수</b>(EA, SHEET, SET, G, KG, MM, M) · <b>L/T 필수, 1 이상 정수</b> · Purchaser ID는 등록된 사용자 ID · <code>ASSY</code>는 Code로 사용 불가 · (v1.1) <b>Mat. Safety Stock, MOQ, Rounding Value</b>는 선택, 빈칸 = 0(미적용), 0 이상 정수. Rounding Value = 발주 단위(예: 1 Reel 5,000). 4번 Safety Stock(Assy 단위)과는 별개인 자재 단위 안전재고</dd>
       <dt>화면 수정</dt><dd>Admin이 값을 고치면 행이 자동 체크되고 수정 칸이 노랗게 표시 → <b>Save</b>(체크된 행만 저장). Status를 Inactive로 바꾸는 것도 여기서. 신규 Code는 Upload로만</dd>
-      <dt>주의</dt><dd>Unit을 바꾸면 기존 BOM의 Unit과 달라져 <b>Recalculate가 Error</b>가 됩니다. BOM도 함께 바꿔 다시 Upload하세요. L/T를 바꾸면 8번 Calculated 입고예정 주차가 바뀝니다.</dd>
+      <dt>주의</dt><dd>Unit을 바꾸면 기존 BOM의 Unit과 달라져 <b>Recalculate가 Error</b>가 됩니다. BOM도 함께 바꿔 다시 Upload하세요. L/T를 바꾸면 8번 Calculated 입고예정 주차가 바뀝니다. <b>Change Upload 파일에 Mat. Safety Stock·MOQ·Rounding Value 열이 없으면 0으로 바뀝니다</b>(미리보기 변경내역에서 확인). 최신 양식은 Template 버튼으로 받으세요.</dd>
     </dl>
   </article>
 
@@ -453,7 +455,7 @@ flowchart LR
     <h3>10. Material PSI <span class="grp">Report · /material-psi/</span></h3>
     <p>최종 분석 화면이자 <b>Recalculate·Weekly Reset을 실행하는 곳</b>입니다.</p>
     <dl class="kv">
-      <dt>화면 구조</dt><dd>자재 × Plan마다 Requirement / Scheduled Receipt / Inventory Balance / PO Balance 4행. Opening Inventory, Open PO 열은 기준별 값. Open PO 셀에 마우스를 올리면 PO No·날짜·수량</dd>
+      <dt>화면 구조</dt><dd>자재 × Plan마다 Requirement / Scheduled Receipt / Inventory Balance / PO Balance / Order Requirement 5행. Opening Inventory, Open PO 열은 기준별 값. Open PO 셀에 마우스를 올리면 PO No·날짜·수량</dd>
       <dt>Recalculate</dt><dd>Admin, 이번 주만. 1~8 저장값으로 9·10번 계산. 계산 전 점검에서 Error(BOM Unit 불일치, 입고예정 &gt; Open PO)가 있으면 중단하고 이전 결과 유지. 동시에 한 사람만 실행</dd>
       <dt>Weekly Reset</dt><dd>Admin, 이번 주만. 확인 창 → Confirm 시 이번 주 5~8번 데이터 삭제 → "Upload new weekly data in this week." 안내. 1~4번과 과거 주차는 그대로, 9·10번은 다음 Recalculate까지 이전 결과 유지</dd>
       <dt>Operation log</dt><dd>Recalculate·Weekly Reset 기록과 마지막 계산의 Error·Warning 상세를 Excel로</dd>

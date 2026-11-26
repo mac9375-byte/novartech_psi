@@ -35,3 +35,5 @@ class PsiRow(models.Model):
     sr_calc = models.JSONField()
     inv_balance = models.JSONField()
     po_balance = models.JSONField()
+    order_req = models.JSONField(default=list)   # v1.1 발주필요수량 (발주 주차 기준 14칸), 이전 결과는 빈 목록
+    order_overdue = models.DecimalField(default=0, **Q10)   # W0 값 중 이미 L/T를 넘긴(늦은) 수량

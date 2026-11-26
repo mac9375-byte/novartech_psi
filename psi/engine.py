@@ -5,8 +5,10 @@
   2) requirements      : Σ(Assy 주별 계획 × BOM 소요원수), RTF 14주차는 + Safety Stock
   3) supply            : 기초재고, 입고예정(Manual + Calculated), Open PO
   4) balances          : 재고 과부족, PO 과부족
-  5) save              : 해당 주차 결과 교체 저장
+  5) order_requirement : (v1.1) 발주필요수량 — PO 과부족 기준, 자재 안전재고·MOQ·Rounding Value·L/T 반영
+  6) save              : 해당 주차 결과 교체 저장
 """
+import math
 from collections import defaultdict
 from decimal import Decimal, localcontext
 from fractions import Fraction
@@ -117,6 +119,30 @@ def supply(week, bom, sr, warnings):
     return {"RTF": rtf_open, "PROD": defaultdict(Fraction, mat_inv)}, manual, calc, open_po
 
 
+def order_requirement(po_balance, safety_stock, moq, lead_time, rounding=0):
+    """발주필요수량 (v1.1, PLAN.md 계산식). (발주 주차 기준 14칸 정수, W0 중 이미 늦은 수량).
+
+    주차 t마다 PO 과부족 + 앞서 추가한 발주량 − 자재 안전재고가 음수면 그만큼(정수 올림 → MOQ 미만이면 MOQ
+    → Rounding Value 배수로 올림) t주차 입고분으로 발주하고, 발주 주차 = t − L/T (0보다 앞이면 W0 = Overdue).
+    """
+    release, added, overdue = [0] * N, 0, 0
+    for t, bal in enumerate(po_balance):
+        net = bal + added - safety_stock
+        if net >= 0:
+            continue
+        q = math.ceil(-net)
+        if q < moq:
+            q = moq
+        if rounding:
+            q = -(-q // rounding) * rounding
+        added += q
+        when = t - lead_time
+        if when < 0:
+            overdue += q
+        release[max(when, 0)] += q
+    return release, overdue
+
+
 def recalculate(week, user):
     """성공하면 OperationLog, 실패(Error)면 기존 결과 유지 + 실패 기록."""
     from safety.services import safety_map
@@ -159,11 +185,17 @@ def recalculate(week, user):
                 op, po = opening[plan].get(mat, Fraction(0)), open_po.get(mat, Fraction(0))
                 inv = [op + s - r for s, r in zip(_cum(sr_total), _cum(req))]       # 재고 과부족
                 po_bal = [op + po - r for r in _cum(req)]                          # PO 과부족 (입고예정 미포함)
+                m = mats.get(mat)
+                # No DB 자재는 L/T를 몰라 발주필요수량을 계산하지 않는다
+                order, overdue = (order_requirement(po_bal, m.safety_stock, m.moq, m.lead_time_weeks,
+                                                    m.rounding_value) if m
+                                  else ([0] * N, 0))
                 psi.append(PsiRow(week=week, plan=plan, material_code=mat, opening=dec(op), open_po=dec(po),
                                   req=[str(dec(v)) for v in req],
                                   sr_manual=[str(dec(v)) for v in manual.get(mat, zero)],
                                   sr_calc=[str(dec(v)) for v in calc.get(mat, zero)],
-                                  inv_balance=[str(dec(v)) for v in inv], po_balance=[str(dec(v)) for v in po_bal]))
+                                  inv_balance=[str(dec(v)) for v in inv], po_balance=[str(dec(v)) for v in po_bal],
+                                  order_req=[str(v) for v in order], order_overdue=overdue))
         MrRow.objects.bulk_create(mr)
         PsiRow.objects.bulk_create(psi)
         now = timezone.now()

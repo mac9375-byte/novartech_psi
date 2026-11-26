@@ -16,12 +16,12 @@ from core.models import SystemStatus, UploadBatch
 from core.testutil import xlsx
 
 P = "DEMO-"
-MATS = [  # code, desc, spec, unit, vendor, country, L/T
-    ("SMMZ14001", "Magnet", "d7*0.4, N30SH", "EA", "YX", "China", 8),
-    ("SMCZ13001", "Cap", "D7.5*0.6(d7*0.4)", "EA", "LS", "Korea", 4),
-    ("SMCZ25009", "Holder", "12x10.6t, Brass", "EA", "YX", "China", 6),
-    ("CMAD15000", "Epoxy (BOND)", "TB2212_gram", "G", "MASTER CHEMICAL", "Korea", 3),
-    ("BOLT3535", "BOLT", "M5*6,8,12, M3*10", "SET", "SOHUCO", "Vina", 2),
+MATS = [  # code, desc, spec, unit, vendor, country, L/T, Mat. Safety Stock, MOQ, Rounding Value (v1.1)
+    ("SMMZ14001", "Magnet", "d7*0.4, N30SH", "EA", "YX", "China", 8, 15000, 10000, 4000),
+    ("SMCZ13001", "Cap", "D7.5*0.6(d7*0.4)", "EA", "LS", "Korea", 4, 2000, 5000, 0),
+    ("SMCZ25009", "Holder", "12x10.6t, Brass", "EA", "YX", "China", 6, 0, 0, 0),
+    ("CMAD15000", "Epoxy (BOND)", "TB2212_gram", "G", "MASTER CHEMICAL", "Korea", 3, 0, 0, 0),
+    ("BOLT3535", "BOLT", "M5*6,8,12, M3*10", "SET", "SOHUCO", "Vina", 2, 0, 0, 0),
 ]
 ASSIES = [  # customer code, assy code, type, model, item
     ("GH00-00000B", "SMAZ13001", "Shield Magnet", "[SM-S911] Galaxy S23", "D7.5*0.6(d7*0.4), N30SH"),
@@ -94,8 +94,10 @@ class Command(BaseCommand):
                 raise CommandError(f"{title} upload failed.")
 
         up("/material-master/", "Material Master", {"MD_Material": [
-            ["Material Code", "Desc.", "Spec.", "Unit", "Purchaser ID", "Vendor", "Country", "L/T(Weeks)"],
-            *[[P + c_, d, s, u, admin.username, v, co, lt] for c_, d, s, u, v, co, lt in MATS]]}, "CHANGE")
+            ["Material Code", "Desc.", "Spec.", "Unit", "Purchaser ID", "Vendor", "Country", "L/T(Weeks)",
+             "Mat. Safety Stock", "MOQ", "Rounding Value"],
+            *[[P + c_, d, s, u, admin.username, v, co, lt, ss, moq, rv]
+              for c_, d, s, u, v, co, lt, ss, moq, rv in MATS]]}, "CHANGE")
         up("/assy-master/", "Assy Master", {"MD_Assy": [
             ["Customer Code", "Assy Code", "Type", "Model", "Item", "Customer", "Country"],
             *[[P + c_, a, t, m, i, "SEVT", "Vina"] for c_, a, t, m, i in ASSIES]]}, "CHANGE")

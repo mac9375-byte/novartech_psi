@@ -5,18 +5,20 @@ from .models import UnitCode
 from .services import SPEC
 
 HEADERS = ["No", "Material Code", "Desc.", "Spec.", "Unit", "Purchaser ID", "Purchaser",
-           "Vendor", "Country", "L/T(Weeks)", "Update", "Status"]
+           "Vendor", "Country", "L/T(Weeks)", "Mat. Safety Stock", "MOQ",
+           "Rounding Value", "Update", "Status"]
 
 
 def _row(n, m):
     return (n, m.material_code, m.description, m.spec, m.unit_id,
             m.purchaser.username if m.purchaser else None, m.purchaser.name if m.purchaser else None,
-            m.vendor, m.country, m.lead_time_weeks, stamp(m.updated_at), m.get_status_display())
+            m.vendor, m.country, m.lead_time_weeks, m.safety_stock, m.moq, m.rounding_value, stamp(m.updated_at),
+            m.get_status_display())
 
 
 def _history_row(n, h):
     return (n, h.material_code, h.description, h.spec, h.unit, h.purchaser_id_text, h.purchaser_name,
-            h.vendor, h.country, h.lead_time_weeks, stamp(h.changed_at), h.status.title(),
+            h.vendor, h.country, h.lead_time_weeks, h.safety_stock, h.moq, h.rounding_value, stamp(h.changed_at), h.status.title(),
             h.change_type, h.changed_by.username)
 
 
