@@ -4,3 +4,4 @@ __pycache__/
 *.pyc
 *백업*
 ~$*
+backups/

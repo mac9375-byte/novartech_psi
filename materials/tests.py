@@ -204,7 +204,7 @@ class ScreenTests(Base):
         self.post_save(self.m, desc="Holder")
         wb = load_workbook(io.BytesIO(self.client.get("/material-master/history.xlsx", {"q": "A1"}).content))
         hist = [[c.value for c in r] for r in wb["History"].iter_rows(min_row=2)]
-        self.assertEqual([(h[1], h[2], h[12]) for h in hist], [("A1", "Magnet", "Add"), ("A1", "Holder", "Screen")])
+        self.assertEqual([(h[1], h[2], h[15]) for h in hist], [("A1", "Magnet", "Add"), ("A1", "Holder", "Screen")])
 
     def test_download_can_be_uploaded_again(self):
         content = self.client.get("/material-master/download.xlsx").content
@@ -230,3 +230,33 @@ class ConcurrentUploadTests(TransactionTestCase):
             self.assertContains(r, "Another user is uploading")
             other.execute("SELECT pg_advisory_unlock(hashtext('upload:M1'))")
         self.assertEqual(UploadBatch.objects.count(), 0)
+
+
+class SafetyMoqTests(Base):
+    """v1.1: 자재 안전재고·MOQ·Rounding Value (선택 열, 빈칸 = 0, 0 이상 정수)."""
+    H = HEADERS + ["Mat. Safety Stock", "MOQ", "Rounding Value"]
+
+    def test_upload_stores_values_and_blank_is_zero(self):
+        self.upload_apply([row("A1") + [500, 1000, 250], row("B2") + [None, None, None]], headers=self.H)
+        a, b = self.mat("A1"), self.mat("B2")
+        self.assertEqual((a.safety_stock, a.moq, a.rounding_value), (500, 1000, 250))
+        self.assertEqual((b.safety_stock, b.moq, b.rounding_value), (0, 0, 0))
+
+    def test_negative_or_fraction_is_error(self):
+        batch, _ = self.upload([row("A1") + [-1, 0, 0], row("B2") + [0, 1.5, 0], row("C3") + [0, 0, -5]],
+                               headers=self.H)
+        self.assertEqual((batch.state, batch.error_count), (UploadBatch.State.FAILED, 3))
+
+    def test_screen_save_and_download_columns(self):
+        self.upload_apply([row("A1")])
+        m = self.mat("A1")
+        data = {"sel": [m.pk], f"version_{m.pk}": m.version, f"unit_{m.pk}": "EA", f"lt_{m.pk}": 5,
+                f"status_{m.pk}": m.status, f"ss_{m.pk}": "20", f"moq_{m.pk}": "300", f"rv_{m.pk}": "50"}
+        self.client.post("/material-master/save/", data)
+        m = self.mat("A1")
+        self.assertEqual((m.safety_stock, m.moq, m.rounding_value), (20, 300, 50))
+        wb = load_workbook(io.BytesIO(self.client.get("/material-master/download.xlsx").content))
+        head = [c.value for c in next(wb.active.iter_rows(max_row=1))]
+        self.assertIn("Mat. Safety Stock", head)
+        self.assertIn("MOQ", head)
+        self.assertIn("Rounding Value", head)

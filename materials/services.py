@@ -44,6 +44,19 @@ def parse_lead_time(raw, ctx):
     return lt
 
 
+def parse_zero_or_more(raw, ctx):
+    """v1.1 자재 안전재고·MOQ·Rounding Value: 선택, 빈칸 = 0, 0 이상의 정수."""
+    try:
+        v = to_int(raw)
+    except ValueError:
+        v = -1
+    if v is None:
+        return 0
+    if v < 0:
+        raise ValueError("Must be a whole number of 0 or more.")
+    return v
+
+
 def _set_unit(obj, v, ctx):
     obj.unit_id = v
 
@@ -64,6 +77,9 @@ SPEC = MasterSpec(
         Field("vendor", "Vendor", "Vendor", "vendor"),
         Field("country", "Country", "Country", "country"),
         Field("lead_time_weeks", H_LT, "L/T(Weeks)", "lt", parse_lead_time),
+        Field("safety_stock", "Mat. Safety Stock", "Mat. Safety Stock", "ss", parse_zero_or_more),
+        Field("moq", "MOQ", "MOQ", "moq", parse_zero_or_more),
+        Field("rounding_value", "Rounding Value", "Rounding Value", "rv", parse_zero_or_more),
     ],
     required=[H_UNIT, H_LT],
     banned_codes=frozenset({"ASSY"}),  # Ⅶ-5: BOM의 Assy 열 표식과 혼동 방지

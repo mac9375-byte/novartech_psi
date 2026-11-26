@@ -1,8 +1,9 @@
 """Module 9·10 계산·Recalculate·Weekly Reset 테스트 (Ⅲ-4, Ⅵ-9, Ⅵ-10, Ⅳ-7)."""
 from datetime import date
 from decimal import Decimal
+from fractions import Fraction as F
 
-from django.test import TestCase
+from django.test import SimpleTestCase, TestCase
 
 from accounts.models import User, UserClass
 from bom.models import BomLine, BomVersion
@@ -13,6 +14,7 @@ from materials.models import Material, UnitCode
 from safety.models import SafetyStock
 from weekly.models import InventoryRow, OpenPoRow, PlanRow, SchedRow
 
+from . import engine
 from .models import MrRow, PsiRow
 
 W = weeks.current_week()
@@ -86,6 +88,26 @@ class CalcTests(TestCase):
         self.assertEqual(D(self.psi("RTF").inv_balance[0]), -200)
         self.assertContains(self.client.get("/material-psi/"), "negcell")
 
+    def test_need_recalculation_shows_button_on_module_pages_for_admin_only(self):
+        SystemStatus.mark_data_changed()
+        btn = 'action="/material-psi/recalculate/"'
+        self.assertContains(self.client.get("/material-master/"), btn)
+        self.client.force_login(user("viewer1", UserClass.USER))
+        self.assertNotContains(self.client.get("/material-master/"), btn)
+
+    def test_order_requirement_row(self):
+        """재고·PO 없음: RTF 소요 200/주(14주차 300), L/T 8 → W0~W8 부족분은 늦어서 W0 합산(Overdue)."""
+        InventoryRow.objects.filter(week=W).delete()
+        SchedRow.objects.all().delete()
+        OpenPoRow.objects.all().delete()
+        Material.objects.filter(material_code="M").update(safety_stock=0, moq=0)
+        self.recalc()
+        o = [D(x) for x in self.psi("RTF").order_req]
+        self.assertEqual((o[0], o[1], o[4], o[5], sum(o)), (1800, 200, 200, 300, 2900))
+        page = self.client.get("/material-psi/")
+        self.assertContains(page, "Order Requirement")
+        self.assertContains(page, "Overdue")
+
     def test_no_bom_and_safety_only_auto_generation_warnings(self):
         assy("B")
         PlanRow.objects.create(week=W, plan="RTF", customer_code="B", qty=[5] * 14)   # BOM 없음
@@ -145,3 +167,38 @@ class CalcTests(TestCase):
         self.assertEqual(self.client.get("/material-psi/log.xlsx").status_code, 200)
         page = self.client.get("/material-psi/", {"week": weeks.add_weeks(W, -1)})
         self.assertContains(page, "No data.")
+
+
+class OrderRequirementFormulaTests(SimpleTestCase):
+    """발주필요수량 (v1.1): PO 과부족 − 자재 안전재고가 음수인 주차의 부족분을 L/T만큼 앞당겨 발주 주차에 표시."""
+
+    def calc(self, po, ss=0, moq=0, lt=1, rounding=0):
+        po = [F(x) for x in po] + [F(po[-1])] * (14 - len(po))
+        return engine.order_requirement(po, ss, moq, lt, rounding)
+
+    def test_no_shortage_is_all_zero(self):
+        self.assertEqual(self.calc([100] * 14), ([0] * 14, 0))
+
+    def test_shortage_netted_week_by_week_and_released_lt_earlier(self):
+        rel, overdue = self.calc([100, 50, -30, -80], lt=1)
+        self.assertEqual((rel[1], rel[2], sum(rel), overdue), (30, 50, 80, 0))
+
+    def test_below_moq_rounds_up_to_moq_and_covers_later_weeks(self):
+        rel, _ = self.calc([100, 50, -30, -80], moq=100, lt=1)
+        self.assertEqual((rel[1], sum(rel)), (100, 100))
+
+    def test_material_safety_stock_and_fraction_rounded_up(self):
+        rel, overdue = self.calc([F(-1, 2)], ss=10, lt=1)
+        self.assertEqual((rel[0], overdue), (11, 11))           # 0.5 + 10 → 11, 이미 늦어 W0
+
+    def test_rounding_value_applied_after_moq(self):
+        rel, _ = self.calc([0, 0, -3000, -15300], moq=10000, rounding=5000, lt=1)
+        self.assertEqual((rel[1], rel[2], sum(rel)), (10000, 10000, 20000))   # 3,000→MOQ 10,000 / 5,300→10,000
+        rel, _ = self.calc([0, -12300], moq=10000, rounding=5000, lt=1)
+        self.assertEqual(rel[0], 15000)                                       # 12,300 → 5,000 배수 15,000
+        rel, _ = self.calc([0, -100], moq=12000, rounding=5000, lt=1)
+        self.assertEqual(rel[0], 15000)                                       # MOQ 먼저, 그 다음 배수 올림
+
+    def test_release_before_w0_is_overdue_at_w0(self):
+        rel, overdue = self.calc([0, 0, -40, -40], lt=8)
+        self.assertEqual((rel[0], overdue, sum(rel)), (40, 40, 40))

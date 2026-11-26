@@ -32,6 +32,9 @@ class Material(models.Model):
     vendor = models.TextField(null=True, blank=True)
     country = models.TextField(null=True, blank=True)
     lead_time_weeks = models.PositiveSmallIntegerField()
+    safety_stock = models.PositiveIntegerField(default=0)   # v1.1 자재 안전재고 (Assy Safety Stock과 별개)
+    moq = models.PositiveIntegerField(default=0)            # v1.1 최소발주수량, 0 = 미적용
+    rounding_value = models.PositiveIntegerField(default=0) # v1.1 발주 단위(포장 단위) 배수, 0 = 미적용
     status = models.CharField(max_length=10, choices=Status.choices, default=Status.ACTIVE)
     created_at = models.DateTimeField(auto_now_add=True)
     created_by = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, on_delete=models.PROTECT, related_name="+")
@@ -69,6 +72,9 @@ class MaterialHistory(models.Model):
     vendor = models.TextField(null=True, blank=True)
     country = models.TextField(null=True, blank=True)
     lead_time_weeks = models.PositiveSmallIntegerField()
+    safety_stock = models.PositiveIntegerField(default=0)
+    moq = models.PositiveIntegerField(default=0)
+    rounding_value = models.PositiveIntegerField(default=0)
     status = models.CharField(max_length=10)
     change_type = models.CharField(max_length=10, choices=ChangeType.choices)
     changed_at = models.DateTimeField()
@@ -85,6 +91,8 @@ class MaterialHistory(models.Model):
             material_code=m.material_code, description=m.description, spec=m.spec, unit=m.unit_id,
             purchaser_id_text=m.purchaser.username if m.purchaser else None,
             purchaser_name=m.purchaser.name if m.purchaser else None,
-            vendor=m.vendor, country=m.country, lead_time_weeks=m.lead_time_weeks, status=m.status,
+            vendor=m.vendor, country=m.country, lead_time_weeks=m.lead_time_weeks,
+            safety_stock=m.safety_stock, moq=m.moq,
+            rounding_value=m.rounding_value, status=m.status,
             change_type=change_type, changed_at=when, changed_by=user, upload_batch=batch,
         )

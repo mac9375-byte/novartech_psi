@@ -13,7 +13,7 @@
 | 구분 | Module | 내용 |
 |---|---|---|
 | 공통 | 계정·권한 | Log-in / Sign up / Master 승인 / User Management, Class별 권한(Master·Admin·User·Guest), 5회 실패 10분 잠금, 2시간 미사용 자동 Log-out |
-| Master DB | 1. Material Master | 자재 기준정보, Excel Upload(Add / Change / Inactive), 화면 수정·Save, History |
+| Master DB | 1. Material Master | 자재 기준정보(v1.1: 자재 안전재고·MOQ·Rounding Value 포함), Excel Upload(Add / Change / Inactive), 화면 수정·Save, History |
 | | 2. Assy Master | 제품(Assy) 기준정보 (Key = Customer Code) |
 | | 3. BOM | Assy별 자재 구성·소요원수(분수 지원 `1/50`), 버전 History |
 | | 4. Safety Stock | Assy별 안전재고 (RTF 14주차에 합산) |
@@ -22,13 +22,14 @@
 | PO | 7. Open PO | 미입고 발주 (Final PO, Remain Q'ty 자동 계산) |
 | | 8. Scheduled Receipt | 입고예정 (Manual) + Open PO 차이분을 L/T 주차에 자동 배치 (Calculated) |
 | Report | 9. Material Requirement | Σ(Assy 주별 계획 × BOM 소요원수), RTF·Prod. 기준 각각 |
-| | 10. Material PSI | 재고 과부족 · PO 과부족, **Recalculate**, **Weekly Reset** |
+| | 10. Material PSI | 재고 과부족 · PO 과부족 · (v1.1) **발주필요수량**, **Recalculate**, **Weekly Reset** |
 
 ### 핵심 계산
 - **RTF 기준 기초재고** = Material 재고 + Σ(Assy 재고 × 소요원수)
 - **Prod. 기준 기초재고** = Material 재고
 - **재고 과부족(주차 t)** = 기초재고 + 누적 입고예정 − 누적 소요량
 - **PO 과부족(주차 t)** = 기초재고 + Open PO(In Transit + Remain) − 누적 소요량
+- **발주필요수량 (v1.1)** = 주차별로 PO 과부족 + 앞서 추가한 발주량 − 자재 안전재고가 음수면 그 부족분(정수 올림 → MOQ 미만이면 MOQ → Rounding Value 배수로 올림). 표시 위치는 그 주차 − L/T(발주 주차), 이미 늦은 수량은 W0에 빨간 칸(Overdue)
 
 ### 공통 규칙
 - 주차는 **ISO Week**, Current Week는 **베트남 시간(Asia/Ho_Chi_Minh)** 월요일 00:00에 전환. 화면 표기 `W48(W0)`
@@ -111,6 +112,17 @@ POC_SKIP_LOGIN=1
 
 ---
 
+## DB 백업
+```
+.venv\Scripts\python manage.py backup_db            # backups\ 에 저장, 최근 14개만 보관
+.venv\Scripts\python manage.py backup_db --keep 30  # 보관 개수 변경
+```
+- `pg_dump` custom 형식(`novatech_psi_YYYYMMDD_HHMMSS.dump`). `backups/`는 Git에 올리지 않습니다.
+- `pg_dump`는 PATH → `C:\Program Files\PostgreSQL\17\bin` 순서로 찾습니다. 다른 위치면 `.env`에 `PG_BIN=<PostgreSQL bin 폴더>`.
+- 복원: 빈 DB를 만든 뒤 `pg_restore -h localhost -U novatech_app -d <DB 이름> --no-owner <백업 파일>`
+
+---
+
 ## 주간 사용 순서 (Admin)
 1. (필요 시) **10. Material PSI → Weekly Reset**: 이번 주 Module 5~8 데이터 초기화
 2. **Module 5~8 Upload**: Inventory → RTF/Production → **Open PO → Scheduled Receipt** (Open PO 먼저)
@@ -126,7 +138,7 @@ POC_SKIP_LOGIN=1
 ```
 .venv\Scripts\python manage.py test
 ```
-자동 테스트 93개 (PostgreSQL 필요, 테스트용 DB는 자동 생성·삭제).
+자동 테스트 105개 (PostgreSQL 필요, 테스트용 DB는 자동 생성·삭제).
 
 ---
 
@@ -157,5 +169,5 @@ Prompt 1135.md   요구사항 정의서 (업무 규칙 원본)
 - 운영 환경(클라우드 / 사내 서버) 결정 및 배포
 - PoC 자동 로그인 제거, `DJANGO_DEBUG=0`, HTTPS
 - 임시 비밀번호 e-mail 발송 연결 (현재는 서버 실행 화면에 출력)
-- DB 자동 백업
-- v1.0 범위 외(다음 버전): 발주필요수량 계산, MOQ, 자재 안전재고, 발주 제안
+- DB 자동 백업: `backup_db` 명령은 있음. 운영 서버에서 매일 실행되도록 예약 + 백업 파일을 다른 디스크/저장소로 복사
+- 다음 버전: 발주 제안 결과 저장 Module (발주필요수량·MOQ·Rounding Value·자재 안전재고는 v1.1에서 구현)

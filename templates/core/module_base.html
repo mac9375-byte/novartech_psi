@@ -9,7 +9,14 @@
 </nav>
 <div class="calc-status">
   Final Calculation: {% if sys_status.last_calculated_at %}{{ sys_status.last_calculated_at|date:"Y-m-d H:i" }} ({{ sys_status.last_calculated_at|date:"T" }}){% else %}-{% endif %}
-  {% if sys_status.need_recalculation %}<span class="need-recalc">● Need Recalculation</span>{% endif %}
+  {% if sys_status.need_recalculation %}<span class="need-recalc">● Need Recalculation</span>
+    {% if can_recalculate %}
+    <form method="post" action="{% url 'psi:recalculate' %}" class="inline"
+          onsubmit="return confirm('Source data changed. Recalculate Material Requirement and Material PSI for the current week now?')">
+      {% csrf_token %}<button class="btn primary" type="submit">Recalculate</button>
+    </form>
+    {% endif %}
+  {% endif %}
 </div>
 {% block module_content %}{% endblock %}
 {% endblock %}

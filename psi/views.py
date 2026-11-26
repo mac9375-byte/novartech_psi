@@ -144,7 +144,23 @@ def mr_download(request):
 
 # ---------------- Module 10 Material PSI ----------------
 PSI_FIELDS = [("mat", "Mat. Code"), ("desc", "Desc.")]
-PSI_ITEMS = ["Requirement", "Scheduled Receipt", "Inventory Balance", "PO Balance"]
+PSI_ITEMS = ["Requirement", "Scheduled Receipt", "Inventory Balance", "PO Balance", "Order Requirement"]
+
+
+def _order(r):
+    """v1.1 이전에 계산된 결과는 order_req가 비어 있다 → 빈칸 (Recalculate하면 채워짐)."""
+    return _vals(r.order_req) if r.order_req else [None] * weeks.HORIZON
+
+
+def _order_cells(r):
+    out = []
+    for i, v in enumerate(_order(r)):
+        if i == 0 and r.order_overdue:
+            out.append(cell(num(v), "num negcell", f"Overdue {num(r.order_overdue)}: L/T already passed. "
+                                                   "Order now (발주 시점 지남)."))
+        else:
+            out.append(cell(num(v) if v else "", "num"))
+    return out
 
 
 def _psi(week, plan, field, q):
@@ -183,6 +199,7 @@ def psi_list(request):
                   f"Manual {num(a, 2)} / Calculated {num(b, 2)}" if b else "") for a, b in zip(man, calc)],
             [cell(num(v, 2), "num negcell" if v < 0 else "num") for v in _vals(r.inv_balance)],
             [cell(num(v, 2), "num negcell" if v < 0 else "num") for v in _vals(r.po_balance)],
+            _order_cells(r),
         ]
         for i, (item, values) in enumerate(zip(PSI_ITEMS, series)):
             n += 1
@@ -222,7 +239,7 @@ def psi_download(request):
     for r in data:
         m = mats.get(r.material_code)
         sr = [a + b for a, b in zip(_vals(r.sr_manual), _vals(r.sr_calc))]
-        for item, values in zip(PSI_ITEMS, (_vals(r.req), sr, _vals(r.inv_balance), _vals(r.po_balance))):
+        for item, values in zip(PSI_ITEMS, (_vals(r.req), sr, _vals(r.inv_balance), _vals(r.po_balance), _order(r))):
             out.append([r.material_code, m and m.description, m and m.spec, m and m.unit_id, r.opening, r.open_po,
                         PLAN_LABEL[r.plan], item, *values, lookup.status(m)])
     out = [[i, *row] for i, row in enumerate(out, start=1)]
